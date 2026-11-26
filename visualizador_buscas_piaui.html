@@ -1,0 +1,1565 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Algoritmos de Busca em IA — Malha Rodoviária do Piauí</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-panel: #1e293b;
+      --bg-card: #0f172a;
+      --border: #334155;
+      --text: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent: #38bdf8;
+      --accent-strong: #0284c7;
+      --amber: #f59e0b;
+      --emerald: #10b981;
+      --violet: #a78bfa;
+      --rose: #fb7185;
+      --visited: #475569;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, BlinkMacSystemFont, Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      line-height: 1.45;
+    }
+
+    /* Header */
+    header {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+      border-bottom: 1px solid var(--border);
+      padding: 14px 24px;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .brand h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .brand .tag {
+      font-size: 0.72rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      padding: 3px 8px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(56, 189, 248, 0.35);
+    }
+
+    .brand p {
+      font-size: 0.84rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* Algorithm Tabs */
+    .algo-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .algo-btn {
+      background: var(--bg);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 14px;
+      font-size: 0.86rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.18s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      min-width: 112px;
+    }
+
+    .algo-btn small {
+      font-size: 0.7rem;
+      font-weight: 400;
+      opacity: 0.8;
+    }
+
+    .algo-btn:hover {
+      border-color: var(--accent);
+      color: var(--text);
+    }
+
+    .algo-btn.active {
+      background: rgba(56, 189, 248, 0.14);
+      border-color: var(--accent);
+      color: var(--text);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.35);
+    }
+
+    .algo-btn.active small {
+      color: var(--accent);
+      opacity: 1;
+    }
+
+    /* Main Grid */
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1.35fr 1fr;
+      gap: 18px;
+      padding: 18px 24px 24px;
+      max-width: 1520px;
+      width: 100%;
+      margin: 0 auto;
+    }
+
+    @media (max-width: 1080px) {
+      main {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .panel {
+      background: var(--bg-panel);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .panel-header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .panel-title {
+      font-size: 0.92rem;
+      font-weight: 700;
+      color: var(--text);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .step-badge {
+      font-size: 0.78rem;
+      font-weight: 600;
+      padding: 3px 10px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.14);
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+
+    /* Map / Graph Canvas */
+    .map-container {
+      position: relative;
+      flex: 1;
+      min-height: 490px;
+      background:
+        radial-gradient(circle at 25% 20%, rgba(56, 189, 248, 0.06), transparent 45%),
+        radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.05), transparent 45%),
+        #0b1220;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 8px;
+    }
+
+    svg#graphSvg {
+      width: 100%;
+      height: 100%;
+      max-height: 540px;
+      user-select: none;
+    }
+
+    /* Legend */
+    .legend {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 14px;
+      padding: 10px 16px;
+      background: rgba(15, 23, 42, 0.75);
+      border-top: 1px solid var(--border);
+      font-size: 0.78rem;
+      color: var(--text-muted);
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      display: inline-block;
+    }
+
+    /* Playback Controls */
+    .controls-bar {
+      padding: 12px 16px;
+      border-top: 1px solid var(--border);
+      background: #162032;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .btn-group {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    button.ctrl {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 8px 13px;
+      font-size: 0.84rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    button.ctrl:hover:not(:disabled) {
+      border-color: var(--accent);
+      background: #1e293b;
+    }
+
+    button.ctrl:disabled {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    button.ctrl.primary {
+      background: var(--accent-strong);
+      border-color: var(--accent);
+      color: #fff;
+    }
+
+    button.ctrl.primary:hover:not(:disabled) {
+      background: #0369a1;
+    }
+
+    .speed-control {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+
+    .speed-control select {
+      background: var(--bg);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 5px 8px;
+      font-size: 0.8rem;
+    }
+
+    /* Right Panel: Didactic Explanation */
+    .right-col {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .didactic-body {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      flex: 1;
+    }
+
+    .formula-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-left: 4px solid var(--accent);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .formula-label {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .formula-math {
+      font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
+      font-size: 0.98rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .formula-desc {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      margin-top: 4px;
+    }
+
+    .metrics-row {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 10px;
+    }
+
+    .metric-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 10px 12px;
+      text-align: center;
+    }
+
+    .metric-card .val {
+      font-size: 1.25rem;
+      font-weight: 800;
+      color: var(--text);
+    }
+
+    .metric-card .lbl {
+      font-size: 0.72rem;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    .explanation-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 13px 14px;
+    }
+
+    .explanation-title {
+      font-size: 0.86rem;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--text);
+    }
+
+    .explanation-text {
+      font-size: 0.85rem;
+      color: #cbd5e1;
+    }
+
+    .eval-list {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .eval-item {
+      font-size: 0.8rem;
+      padding: 7px 10px;
+      border-radius: 8px;
+      background: rgba(30, 41, 59, 0.7);
+      border: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .eval-item.added {
+      border-left: 3px solid var(--amber);
+    }
+
+    .eval-item.updated {
+      border-left: 3px solid var(--violet);
+    }
+
+    .eval-item.ignored {
+      border-left: 3px solid #64748b;
+      opacity: 0.75;
+    }
+
+    .eval-item.goal {
+      border-left: 3px solid var(--emerald);
+      background: rgba(16, 185, 129, 0.12);
+    }
+
+    .eval-item code {
+      font-family: 'Cascadia Code', Consolas, monospace;
+      color: var(--accent);
+      font-size: 0.78rem;
+    }
+
+    /* Frontier Box */
+    .frontier-box {
+      background: var(--bg-card);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 14px;
+    }
+
+    .frontier-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .frontier-header span.sub {
+      font-weight: 500;
+      color: var(--text-muted);
+      font-size: 0.74rem;
+    }
+
+    .frontier-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      min-height: 30px;
+    }
+
+    .chip {
+      font-size: 0.76rem;
+      padding: 5px 9px;
+      border-radius: 8px;
+      background: rgba(245, 158, 11, 0.14);
+      border: 1px solid rgba(245, 158, 11, 0.4);
+      color: #fde68a;
+      font-weight: 600;
+    }
+
+    .chip.next {
+      background: rgba(56, 189, 248, 0.18);
+      border-color: var(--accent);
+      color: #e0f2fe;
+    }
+
+    .chip.empty {
+      background: transparent;
+      border-color: var(--border);
+      color: var(--text-muted);
+      font-weight: 400;
+    }
+
+    /* Comparison Table */
+    .compare-section {
+      max-width: 1520px;
+      width: 100%;
+      margin: 0 auto 24px;
+      padding: 0 24px;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.84rem;
+    }
+
+    th, td {
+      padding: 11px 14px;
+      text-align: left;
+      border-bottom: 1px solid var(--border);
+    }
+
+    th {
+      font-size: 0.74rem;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      background: rgba(15, 23, 42, 0.65);
+    }
+
+    tr.active-row {
+      background: rgba(56, 189, 248, 0.09);
+    }
+
+    tr:last-child td {
+      border-bottom: none;
+    }
+
+    .pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 0.74rem;
+      font-weight: 700;
+    }
+
+    .pill.yes {
+      background: rgba(16, 185, 129, 0.16);
+      color: #6ee7b7;
+      border: 1px solid rgba(16, 185, 129, 0.4);
+    }
+
+    .pill.warn {
+      background: rgba(245, 158, 11, 0.16);
+      color: #fcd34d;
+      border: 1px solid rgba(245, 158, 11, 0.4);
+    }
+
+    .pill.no {
+      background: rgba(251, 113, 133, 0.15);
+      color: #fda4af;
+      border: 1px solid rgba(251, 113, 133, 0.35);
+    }
+
+    /* SVG Animations */
+    @keyframes pulseRing {
+      0% { r: 26; opacity: 0.9; }
+      100% { r: 38; opacity: 0; }
+    }
+
+    .pulse-ring {
+      animation: pulseRing 1.3s ease-out infinite;
+    }
+
+    .kbd-hint {
+      font-size: 0.74rem;
+      color: var(--text-muted);
+    }
+
+    kbd {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 4px;
+      padding: 1px 5px;
+      font-family: inherit;
+      font-size: 0.72rem;
+      color: var(--text);
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="brand">
+      <h1>
+        <span>Simulador Visual de Buscas em IA</span>
+        <span class="tag">Malha Rodoviária do Piauí</span>
+      </h1>
+      <p>Origem: <strong>São Raimundo Nonato</strong> &rarr; Destino: <strong>Parnaíba</strong> (baseado em <code>trabalho_ia_buscas.py</code>)</p>
+    </div>
+
+    <div class="algo-tabs" role="tablist" aria-label="Escolha o algoritmo de busca">
+      <button class="algo-btn active" data-algo="A*">
+        <span>A* (Estrela)</span>
+        <small>f(n) = g(n) + h(n)</small>
+      </button>
+      <button class="algo-btn" data-algo="Gulosa">
+        <span>Busca Gulosa</span>
+        <small>f(n) = h(n)</small>
+      </button>
+      <button class="algo-btn" data-algo="BFS">
+        <span>BFS (Largura)</span>
+        <small>Fila (FIFO)</small>
+      </button>
+      <button class="algo-btn" data-algo="DFS">
+        <span>DFS (Profundidade)</span>
+        <small>Pilha (LIFO)</small>
+      </button>
+    </div>
+  </header>
+
+  <main>
+    <!-- Left Panel: Interactive Graph -->
+    <section class="panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span>Mapa de Estados — Piauí (Norte &uarr; / Sul &darr;)</span>
+        </div>
+        <span class="step-badge" id="stepCounter">Passo 0 / 0</span>
+      </div>
+
+      <div class="map-container">
+        <svg id="graphSvg" viewBox="0 0 760 540" aria-label="Grafo das cidades do Piauí"></svg>
+      </div>
+
+      <div class="legend">
+        <div class="legend-item"><span class="dot" style="background:#334155;border:2px solid #64748b"></span> Não visitado</div>
+        <div class="legend-item"><span class="dot" style="background:#f59e0b"></span> Na Fronteira</div>
+        <div class="legend-item"><span class="dot" style="background:#38bdf8"></span> Analisando Agora</div>
+        <div class="legend-item"><span class="dot" style="background:#64748b"></span> Já Expandido</div>
+        <div class="legend-item"><span class="dot" style="background:#10b981"></span> Rota Final</div>
+      </div>
+
+      <div class="controls-bar">
+        <div class="btn-group">
+          <button class="ctrl" id="btnReset" title="Voltar ao início">⏮ Reiniciar</button>
+          <button class="ctrl" id="btnPrev" title="Passo anterior (Seta Esquerda)">◀ Anterior</button>
+          <button class="ctrl primary" id="btnPlay" title="Reproduzir / Pausar (Espaço)">▶ Reproduzir</button>
+          <button class="ctrl" id="btnNext" title="Próximo passo (Seta Direita)">Próximo ▶</button>
+          <button class="ctrl" id="btnEnd" title="Ir para o resultado final">Final ⏭</button>
+        </div>
+
+        <div class="speed-control">
+          <label for="speedSelect">Velocidade:</label>
+          <select id="speedSelect">
+            <option value="2200">Lenta (Didática)</option>
+            <option value="1300" selected>Normal</option>
+            <option value="650">Rápida</option>
+          </select>
+          <span class="kbd-hint">Atalhos: <kbd>←</kbd> <kbd>→</kbd> <kbd>Espaço</kbd></span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Right Panel: Didactic Mode -->
+    <section class="panel right-col">
+      <div class="panel-header">
+        <div class="panel-title">Painel Didático (Modo Professor)</div>
+        <span class="step-badge" id="algoBadge">A*</span>
+      </div>
+
+      <div class="didactic-body">
+        <div class="formula-box">
+          <div class="formula-label" id="formulaLabel">Critério de Decisão</div>
+          <div class="formula-math" id="formulaMath">f(n) = g(n) + h(n)</div>
+          <div class="formula-desc" id="formulaDesc">Combina o custo real já percorrido g(n) com a estimativa em linha reta até Parnaíba h(n).</div>
+        </div>
+
+        <div class="metrics-row">
+          <div class="metric-card">
+            <div class="val" id="metricExpanded">0</div>
+            <div class="lbl">Nós Expandidos</div>
+          </div>
+          <div class="metric-card">
+            <div class="val" id="metricCurrentG">0 km</div>
+            <div class="lbl">Custo Real g(n)</div>
+          </div>
+          <div class="metric-card">
+            <div class="val" id="metricCurrentH">600 km</div>
+            <div class="lbl">Heurística h(n)</div>
+          </div>
+        </div>
+
+        <div class="explanation-box">
+          <div class="explanation-title" id="expTitle">Estado Inicial</div>
+          <div class="explanation-text" id="expText">
+            Clique em <strong>Próximo</strong> ou pressione a seta <strong>→</strong> para acompanhar passo a passo como o algoritmo escolhe a rota até Parnaíba.
+          </div>
+          <div class="eval-list" id="evalList"></div>
+        </div>
+
+        <div class="frontier-box">
+          <div class="frontier-header">
+            <span id="frontierTitle">Fronteira (Fila de Prioridade)</span>
+            <span class="sub" id="frontierSubtitle">Menor f(n) sai primeiro</span>
+          </div>
+          <div class="frontier-chips" id="frontierChips"></div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- Comparative Summary -->
+  <section class="compare-section">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Comparação Geral dos 4 Algoritmos (São Raimundo Nonato &rarr; Parnaíba)</div>
+        <span class="step-badge">Clique em uma linha para visualizar o algoritmo</span>
+      </div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>Algoritmo</th>
+              <th>Estrutura</th>
+              <th>Usa Heurística?</th>
+              <th>Nós Expandidos</th>
+              <th>Distância Real</th>
+              <th>Garantia de Ótimo?</th>
+              <th>Rota Encontrada</th>
+            </tr>
+          </thead>
+          <tbody id="compareBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <script>
+    // =========================================================================
+    // 1. DADOS EXATOS DO ARQUIVO trabalho_ia_buscas.py
+    // =========================================================================
+    const GRAFO_PI = {
+      'Sao Raimundo Nonato': [['Canto do Buriti', 100], ['Floriano', 250]],
+      'Canto do Buriti':     [['Sao Raimundo Nonato', 100], ['Floriano', 160]],
+      'Floriano':            [['Sao Raimundo Nonato', 250], ['Canto do Buriti', 160], ['Oeiras', 100], ['Teresina', 240]],
+      'Oeiras':              [['Floriano', 100], ['Picos', 90]],
+      'Picos':               [['Oeiras', 90], ['Teresina', 310]],
+      'Teresina':            [['Floriano', 240], ['Picos', 310], ['Campo Maior', 80]],
+      'Campo Maior':         [['Teresina', 80], ['Piripiri', 90]],
+      'Piripiri':            [['Campo Maior', 90], ['Parnaiba', 150]],
+      'Parnaiba':            [['Piripiri', 150]]
+    };
+
+    const H_PI = {
+      'Parnaiba': 0,
+      'Piripiri': 130,
+      'Campo Maior': 200,
+      'Teresina': 270,
+      'Oeiras': 420,
+      'Picos': 400,
+      'Floriano': 450,
+      'Canto do Buriti': 520,
+      'Sao Raimundo Nonato': 600
+    };
+
+    const DISPLAY_NAME = {
+      'Sao Raimundo Nonato': 'São Raimundo Nonato',
+      'Canto do Buriti': 'Canto do Buriti',
+      'Floriano': 'Floriano',
+      'Oeiras': 'Oeiras',
+      'Picos': 'Picos',
+      'Teresina': 'Teresina',
+      'Campo Maior': 'Campo Maior',
+      'Piripiri': 'Piripiri',
+      'Parnaiba': 'Parnaíba'
+    };
+
+    // Coordenadas estilizadas respeitando a geografia do Piauí (Norte no topo, Sul embaixo)
+    const POS = {
+      'Parnaiba':            { x: 470, y: 58,  labelPos: 'right' },
+      'Piripiri':            { x: 445, y: 145, labelPos: 'right' },
+      'Campo Maior':         { x: 385, y: 222, labelPos: 'right' },
+      'Teresina':            { x: 285, y: 278, labelPos: 'left'  },
+      'Picos':               { x: 520, y: 345, labelPos: 'right' },
+      'Oeiras':              { x: 415, y: 385, labelPos: 'bottom'},
+      'Floriano':            { x: 250, y: 392, labelPos: 'left'  },
+      'Canto do Buriti':     { x: 185, y: 478, labelPos: 'left'  },
+      'Sao Raimundo Nonato': { x: 345, y: 492, labelPos: 'right' }
+    };
+
+    const START = 'Sao Raimundo Nonato';
+    const GOAL = 'Parnaiba';
+
+    const ALGO_META = {
+      'A*': {
+        title: 'A* (Estrela)',
+        structure: 'Fila de Prioridade (Min-Heap)',
+        usesH: 'Sim (admissível)',
+        optimalText: 'Sim (ótimo)',
+        optimalClass: 'yes',
+        formula: 'f(n) = g(n) + h(n)',
+        desc: 'Soma o custo real percorrido g(n) com a distância em linha reta h(n). Garante a menor distância total em km.',
+        frontierTitle: 'Fronteira — Fila de Prioridade (A*)',
+        frontierSub: 'Menor f(n) = g + h sai primeiro'
+      },
+      'Gulosa': {
+        title: 'Busca Gulosa (Best-First)',
+        structure: 'Fila de Prioridade (Min-Heap)',
+        usesH: 'Sim (apenas h)',
+        optimalText: 'Não garante',
+        optimalClass: 'warn',
+        formula: 'f(n) = h(n)',
+        desc: 'Olha apenas para a distância em linha reta até Parnaíba, ignorando quantos km já foram percorridos.',
+        frontierTitle: 'Fronteira — Fila de Prioridade (Gulosa)',
+        frontierSub: 'Menor h(n) sai primeiro'
+      },
+      'BFS': {
+        title: 'BFS (Busca em Largura)',
+        structure: 'Fila (FIFO)',
+        usesH: 'Não (cega)',
+        optimalText: 'Apenas em saltos',
+        optimalClass: 'warn',
+        formula: 'Ordem: Primeiro a Entrar, Primeiro a Sair',
+        desc: 'Explora camada por camada. Encontra o caminho com menos cidades, mas não considera os km das estradas.',
+        frontierTitle: 'Fronteira — Fila (FIFO)',
+        frontierSub: 'Esquerda sai primeiro'
+      },
+      'DFS': {
+        title: 'DFS (Busca em Profundidade)',
+        structure: 'Pilha (LIFO)',
+        usesH: 'Não (cega)',
+        optimalText: 'Não',
+        optimalClass: 'no',
+        formula: 'Ordem: Último a Entrar, Primeiro a Sair',
+        desc: 'Mergulha o máximo possível em um ramo antes de voltar (backtracking). Não garante caminho curto nem ótimo.',
+        frontierTitle: 'Fronteira — Pilha (LIFO)',
+        frontierSub: 'Topo da pilha sai primeiro'
+      }
+    };
+
+    // =========================================================================
+    // 2. GERADOR DE PASSOS (ESPELHA EXATAMENTE trabalho_ia_buscas.py)
+    // =========================================================================
+    function edgeCost(a, b) {
+      const found = GRAFO_PI[a].find(([dest]) => dest === b);
+      return found ? found[1] : 0;
+    }
+
+    function reconstructPath(node) {
+      const path = [];
+      let curr = node;
+      while (curr) {
+        path.push(curr.estado);
+        curr = curr.pai;
+      }
+      return path.reverse();
+    }
+
+    function computeRealCost(path) {
+      let total = 0;
+      for (let i = 0; i < path.length - 1; i++) {
+        total += edgeCost(path[i], path[i + 1]);
+      }
+      return total;
+    }
+
+    function cloneNodeInfo(map) {
+      const out = {};
+      for (const [k, v] of Object.entries(map)) out[k] = { ...v };
+      return out;
+    }
+
+    function generateTrace(algo) {
+      const steps = [];
+      const expandedSet = new Set();
+      const nodeStats = {}; // estado -> { g, h, f, realG }
+      let nosExpandidos = 0;
+
+      // Estado inicial (Passo 0)
+      nodeStats[START] = { g: 0, h: H_PI[START], f: algo === 'Gulosa' ? H_PI[START] : H_PI[START], realG: 0 };
+
+      const makeFrontierSnapshot = (list) => list.map(n => ({
+        estado: n.estado,
+        g: n.g,
+        h: n.h,
+        f: n.f,
+        realG: n.realG,
+        pai: n.pai ? n.pai.estado : null
+      }));
+
+      if (algo === 'A*' || algo === 'Gulosa') {
+        const isAStar = algo === 'A*';
+        let seq = 0;
+        const root = {
+          estado: START,
+          pai: null,
+          g: 0,
+          h: H_PI[START],
+          f: H_PI[START],
+          realG: 0,
+          seq: seq++
+        };
+        const fronteira = [root];
+        const visitados = { [START]: isAStar ? 0 : H_PI[START] };
+
+        const sortHeap = () => {
+          fronteira.sort((a, b) => (a.f !== b.f ? a.f - b.f : a.seq - b.seq));
+        };
+
+        steps.push({
+          stepNum: 0,
+          current: null,
+          expanded: [],
+          frontier: makeFrontierSnapshot(fronteira),
+          nodeStats: cloneNodeInfo(nodeStats),
+          activeEdges: [],
+          finalPath: null,
+          nosExpandidos: 0,
+          currentG: 0,
+          currentH: H_PI[START],
+          title: `Início — ${ALGO_META[algo].title}`,
+          text: `Começamos em <strong>${DISPLAY_NAME[START]}</strong> com destino a <strong>${DISPLAY_NAME[GOAL]}</strong>. A cidade inicial entra na fronteira com <code>h = ${H_PI[START]} km</code>.`,
+          evaluations: []
+        });
+
+        let passo = 1;
+        while (fronteira.length > 0) {
+          sortHeap();
+          const no = fronteira.shift();
+          nosExpandidos++;
+          expandedSet.add(no.estado);
+
+          if (no.estado === GOAL) {
+            const finalPath = reconstructPath(no);
+            const totalKm = computeRealCost(finalPath);
+            steps.push({
+              stepNum: passo,
+              current: no.estado,
+              expanded: Array.from(expandedSet),
+              frontier: makeFrontierSnapshot(fronteira),
+              nodeStats: cloneNodeInfo(nodeStats),
+              activeEdges: [],
+              finalPath,
+              nosExpandidos,
+              currentG: totalKm,
+              currentH: 0,
+              title: `Passo ${passo} — Destino Alcançado: ${DISPLAY_NAME[GOAL]}!`,
+              text: isAStar
+                ? `Chegamos em <strong>Parnaíba</strong>! Como <code>h(Parnaíba) = 0</code>, temos <code>f = ${no.g} + 0 = ${no.f} km</code>. Nenhum nó restante na fronteira tem <code>f</code> menor, logo esta rota é <strong>garantidamente ótima</strong>.`
+                : `Chegamos em <strong>Parnaíba</strong>! A distância real percorrida foi de <strong>${totalKm} km</strong> em ${nosExpandidos} nós expandidos.`,
+              evaluations: [{
+                type: 'goal',
+                html: `<strong>Rota Final (${totalKm} km):</strong> ${finalPath.map(c => DISPLAY_NAME[c]).join(' → ')}`
+              }]
+            });
+            return { steps, finalPath, totalKm, nosExpandidos };
+          }
+
+          const evaluations = [];
+          const activeEdges = [];
+
+          for (const [filhoEst, custo] of GRAFO_PI[no.estado]) {
+            const novoG = no.g + (isAStar ? custo : 0);
+            const novoRealG = no.realG + custo;
+            const h = H_PI[filhoEst];
+            const f = novoG + h;
+            activeEdges.push([no.estado, filhoEst]);
+
+            if (!(filhoEst in visitados) || novoG < visitados[filhoEst]) {
+              const isUpdate = filhoEst in visitados;
+              visitados[filhoEst] = novoG;
+              const childNode = {
+                estado: filhoEst,
+                pai: no,
+                g: novoG,
+                h,
+                f,
+                realG: novoRealG,
+                seq: seq++
+              };
+              fronteira.push(childNode);
+              sortHeap();
+              nodeStats[filhoEst] = { g: novoG, h, f, realG: novoRealG };
+
+              if (isAStar) {
+                evaluations.push({
+                  type: isUpdate ? 'updated' : 'added',
+                  html: `<strong>${isUpdate ? '↻ Caminho Melhor' : '+ Adicionado'}: ${DISPLAY_NAME[filhoEst]}</strong> (estrada: ${custo} km)<br>
+                         <code>g = ${no.g} + ${custo} = ${novoG}</code> · <code>h = ${h}</code> · <strong><code>f = ${f}</code></strong>${filhoEst === GOAL ? ' (Meta! h = 0)' : ''}`
+                });
+              } else {
+                evaluations.push({
+                  type: 'added',
+                  html: `<strong>+ Adicionado: ${DISPLAY_NAME[filhoEst]}</strong> (estrada: ${custo} km, acum. real: ${novoRealG} km)<br>
+                         Gulosa usa apenas <strong><code>h = ${h}</code></strong>${filhoEst === GOAL ? ' (Meta!)' : ''}`
+                });
+              }
+            } else {
+              evaluations.push({
+                type: 'ignored',
+                html: `<strong>× Ignorado: ${DISPLAY_NAME[filhoEst]}</strong> (estrada: ${custo} km) — já existe caminho ${isAStar ? `com g = ${visitados[filhoEst]} ≤ ${novoG}` : 'registrado'}.`
+              });
+            }
+          }
+
+          steps.push({
+            stepNum: passo,
+            current: no.estado,
+            expanded: Array.from(expandedSet),
+            frontier: makeFrontierSnapshot(fronteira),
+            nodeStats: cloneNodeInfo(nodeStats),
+            activeEdges,
+            finalPath: null,
+            nosExpandidos,
+            currentG: no.realG,
+            currentH: no.h,
+            title: `Passo ${passo} — Analisando ${DISPLAY_NAME[no.estado]}`,
+            text: isAStar
+              ? `Retirado da fronteira por ter o <strong>menor f(n) = ${no.f}</strong> (<code>g = ${no.g}</code> + <code>h = ${no.h}</code>). Avaliando estradas vizinhas:`
+              : `Retirado da fronteira por ter a <strong>menor heurística h(n) = ${no.h}</strong> (distância real até aqui: ${no.realG} km). Avaliando vizinhos:`,
+            evaluations
+          });
+          passo++;
+        }
+      } else if (algo === 'BFS') {
+        const root = { estado: START, pai: null, g: 0, h: H_PI[START], f: 0, realG: 0 };
+        const fronteira = [root];
+        const visitados = new Set([START]);
+
+        steps.push({
+          stepNum: 0,
+          current: null,
+          expanded: [],
+          frontier: makeFrontierSnapshot(fronteira),
+          nodeStats: cloneNodeInfo(nodeStats),
+          activeEdges: [],
+          finalPath: null,
+          nosExpandidos: 0,
+          currentG: 0,
+          currentH: H_PI[START],
+          title: `Início — BFS (Busca em Largura)`,
+          text: `A BFS usa uma <strong>Fila (FIFO)</strong> e ignora distâncias e heurísticas. <strong>${DISPLAY_NAME[START]}</strong> entra na fila.`,
+          evaluations: []
+        });
+
+        let passo = 1;
+        while (fronteira.length > 0) {
+          const no = fronteira.shift();
+          nosExpandidos++;
+          expandedSet.add(no.estado);
+
+          if (no.estado === GOAL) {
+            const finalPath = reconstructPath(no);
+            const totalKm = computeRealCost(finalPath);
+            steps.push({
+              stepNum: passo,
+              current: no.estado,
+              expanded: Array.from(expandedSet),
+              frontier: makeFrontierSnapshot(fronteira),
+              nodeStats: cloneNodeInfo(nodeStats),
+              activeEdges: [],
+              finalPath,
+              nosExpandidos,
+              currentG: totalKm,
+              currentH: 0,
+              title: `Passo ${passo} — Destino Alcançado: ${DISPLAY_NAME[GOAL]}!`,
+              text: `BFS encontrou <strong>Parnaíba</strong> com o menor número de conexões (${finalPath.length - 1} estradas), totalizando <strong>${totalKm} km</strong> em ${nosExpandidos} nós expandidos.`,
+              evaluations: [{
+                type: 'goal',
+                html: `<strong>Rota Final (${totalKm} km):</strong> ${finalPath.map(c => DISPLAY_NAME[c]).join(' → ')}`
+              }]
+            });
+            return { steps, finalPath, totalKm, nosExpandidos };
+          }
+
+          const evaluations = [];
+          const activeEdges = [];
+          for (const [filhoEst, custo] of GRAFO_PI[no.estado]) {
+            activeEdges.push([no.estado, filhoEst]);
+            if (!visitados.has(filhoEst)) {
+              visitados.add(filhoEst);
+              const novoRealG = no.realG + custo;
+              fronteira.push({ estado: filhoEst, pai: no, g: novoRealG, h: H_PI[filhoEst], f: novoRealG, realG: novoRealG });
+              nodeStats[filhoEst] = { g: novoRealG, h: H_PI[filhoEst], f: novoRealG, realG: novoRealG };
+              evaluations.push({
+                type: 'added',
+                html: `<strong>+ Enfileirado: ${DISPLAY_NAME[filhoEst]}</strong> (entra no fim da fila · acum. ${novoRealG} km)`
+              });
+            } else {
+              evaluations.push({
+                type: 'ignored',
+                html: `<strong>× Ignorado: ${DISPLAY_NAME[filhoEst]}</strong> — já visitado ou na fila.`
+              });
+            }
+          }
+
+          steps.push({
+            stepNum: passo,
+            current: no.estado,
+            expanded: Array.from(expandedSet),
+            frontier: makeFrontierSnapshot(fronteira),
+            nodeStats: cloneNodeInfo(nodeStats),
+            activeEdges,
+            finalPath: null,
+            nosExpandidos,
+            currentG: no.realG,
+            currentH: H_PI[no.estado],
+            title: `Passo ${passo} — Analisando ${DISPLAY_NAME[no.estado]}`,
+            text: `Retirado do <strong>início da fila (FIFO)</strong>. Expandindo seus vizinhos ainda não descobertos:`,
+            evaluations
+          });
+          passo++;
+        }
+      } else if (algo === 'DFS') {
+        const root = { estado: START, pai: null, g: 0, h: H_PI[START], f: 0, realG: 0 };
+        const fronteira = [root];
+        const visitados = new Set();
+
+        steps.push({
+          stepNum: 0,
+          current: null,
+          expanded: [],
+          frontier: makeFrontierSnapshot([...fronteira].reverse()),
+          nodeStats: cloneNodeInfo(nodeStats),
+          activeEdges: [],
+          finalPath: null,
+          nosExpandidos: 0,
+          currentG: 0,
+          currentH: H_PI[START],
+          title: `Início — DFS (Busca em Profundidade)`,
+          text: `A DFS usa uma <strong>Pilha (LIFO)</strong>: sempre avança pelo último vizinho empilhado. <strong>${DISPLAY_NAME[START]}</strong> entra na pilha.`,
+          evaluations: []
+        });
+
+        let passo = 1;
+        while (fronteira.length > 0) {
+          const no = fronteira.pop();
+          if (visitados.has(no.estado)) continue;
+          visitados.add(no.estado);
+          nosExpandidos++;
+          expandedSet.add(no.estado);
+
+          if (no.estado === GOAL) {
+            const finalPath = reconstructPath(no);
+            const totalKm = computeRealCost(finalPath);
+            steps.push({
+              stepNum: passo,
+              current: no.estado,
+              expanded: Array.from(expandedSet),
+              frontier: makeFrontierSnapshot([...fronteira].reverse()),
+              nodeStats: cloneNodeInfo(nodeStats),
+              activeEdges: [],
+              finalPath,
+              nosExpandidos,
+              currentG: totalKm,
+              currentH: 0,
+              title: `Passo ${passo} — Destino Alcançado: ${DISPLAY_NAME[GOAL]}!`,
+              text: `DFS chegou em <strong>Parnaíba</strong> mergulhando pelo ramo do topo da pilha. Distância total: <strong>${totalKm} km</strong> em ${nosExpandidos} nós expandidos.`,
+              evaluations: [{
+                type: 'goal',
+                html: `<strong>Rota Final (${totalKm} km):</strong> ${finalPath.map(c => DISPLAY_NAME[c]).join(' → ')}`
+              }]
+            });
+            return { steps, finalPath, totalKm, nosExpandidos };
+          }
+
+          const evaluations = [];
+          const activeEdges = [];
+          for (const [filhoEst, custo] of GRAFO_PI[no.estado]) {
+            activeEdges.push([no.estado, filhoEst]);
+            if (!visitados.has(filhoEst)) {
+              const novoRealG = no.realG + custo;
+              fronteira.push({ estado: filhoEst, pai: no, g: novoRealG, h: H_PI[filhoEst], f: novoRealG, realG: novoRealG });
+              nodeStats[filhoEst] = { g: novoRealG, h: H_PI[filhoEst], f: novoRealG, realG: novoRealG };
+              evaluations.push({
+                type: 'added',
+                html: `<strong>+ Empilhado: ${DISPLAY_NAME[filhoEst]}</strong> (vai para o topo da pilha · acum. ${novoRealG} km)`
+              });
+            } else {
+              evaluations.push({
+                type: 'ignored',
+                html: `<strong>× Ignorado: ${DISPLAY_NAME[filhoEst]}</strong> — já expandido.`
+              });
+            }
+          }
+
+          steps.push({
+            stepNum: passo,
+            current: no.estado,
+            expanded: Array.from(expandedSet),
+            frontier: makeFrontierSnapshot([...fronteira].reverse()),
+            nodeStats: cloneNodeInfo(nodeStats),
+            activeEdges,
+            finalPath: null,
+            nosExpandidos,
+            currentG: no.realG,
+            currentH: H_PI[no.estado],
+            title: `Passo ${passo} — Analisando ${DISPLAY_NAME[no.estado]}`,
+            text: `Retirado do <strong>topo da pilha (LIFO)</strong>. Empilhando vizinhos não visitados:`,
+            evaluations
+          });
+          passo++;
+        }
+      }
+
+      return { steps, finalPath: [], totalKm: 0, nosExpandidos };
+    }
+
+    // Pré-computa todos os 4 algoritmos para navegação instantânea e tabela comparativa
+    const ALL_ALGOS = ['A*', 'Gulosa', 'BFS', 'DFS'];
+    const TRACES = {};
+    ALL_ALGOS.forEach(a => { TRACES[a] = generateTrace(a); });
+
+    // Lista única de arestas não-direcionadas para desenho limpo
+    const UNIQUE_EDGES = [];
+    const seenEdge = new Set();
+    for (const [u, neighbors] of Object.entries(GRAFO_PI)) {
+      for (const [v, dist] of neighbors) {
+        const key = [u, v].sort().join('--');
+        if (!seenEdge.has(key)) {
+          seenEdge.add(key);
+          UNIQUE_EDGES.push({ u, v, dist, key });
+        }
+      }
+    }
+
+    // =========================================================================
+    // 3. RENDERIZAÇÃO DO GRAFO SVG
+    // =========================================================================
+    const svg = document.getElementById('graphSvg');
+
+    function createSvgEl(tag, attrs = {}) {
+      const el = document.createElementNS('http://www.w3.org/2000/svg', tag);
+      for (const [k, v] of Object.entries(attrs)) el.setAttribute(k, v);
+      return el;
+    }
+
+    function isEdgeInPath(u, v, path) {
+      if (!path) return false;
+      for (let i = 0; i < path.length - 1; i++) {
+        if ((path[i] === u && path[i + 1] === v) || (path[i] === v && path[i + 1] === u)) return true;
+      }
+      return false;
+    }
+
+    function isEdgeActive(u, v, activeEdges) {
+      return activeEdges.some(([a, b]) => (a === u && b === v) || (a === v && b === u));
+    }
+
+    function renderGraph(algo, step) {
+      svg.innerHTML = '';
+
+      // Indicador discreto de bússola (Norte / Sul)
+      const compass = createSvgEl('g', { opacity: '0.45' });
+      compass.appendChild(createSvgEl('text', {
+        x: 685, y: 42, fill: '#94a3b8', 'font-size': '11', 'font-weight': '700', 'text-anchor': 'middle'
+      })).textContent = 'N (Litoral)';
+      compass.appendChild(createSvgEl('line', { x1: 685, y1: 50, x2: 685, y2: 80, stroke: '#64748b', 'stroke-width': '1.5' }));
+      compass.appendChild(createSvgEl('polygon', { points: '685,46 680,55 690,55', fill: '#38bdf8' }));
+      compass.appendChild(createSvgEl('text', {
+        x: 685, y: 95, fill: '#94a3b8', 'font-size': '11', 'text-anchor': 'middle'
+      })).textContent = 'S (Sul)';
+      svg.appendChild(compass);
+
+      const frontierNames = new Set(step.frontier.map(f => f.estado));
+      const expandedNames = new Set(step.expanded);
+      const finalSet = new Set(step.finalPath || []);
+
+      // 1) Arestas
+      for (const edge of UNIQUE_EDGES) {
+        const p1 = POS[edge.u];
+        const p2 = POS[edge.v];
+        const inFinal = isEdgeInPath(edge.u, edge.v, step.finalPath);
+        const active = isEdgeActive(edge.u, edge.v, step.activeEdges);
+
+        let stroke = '#334155';
+        let width = '2.5';
+        if (inFinal) { stroke = '#10b981'; width = '5.5'; }
+        else if (active) { stroke = '#38bdf8'; width = '4'; }
+
+        svg.appendChild(createSvgEl('line', {
+          x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y,
+          stroke, 'stroke-width': width, 'stroke-linecap': 'round'
+        }));
+
+        // Rótulo de distância (km) no meio da aresta
+        const mx = (p1.x + p2.x) / 2;
+        const my = (p1.y + p2.y) / 2;
+        const gLabel = createSvgEl('g');
+        gLabel.appendChild(createSvgEl('rect', {
+          x: mx - 23, y: my - 10, width: 46, height: 20, rx: 6,
+          fill: inFinal ? '#064e3b' : '#0f172a',
+          stroke: inFinal ? '#10b981' : (active ? '#38bdf8' : '#334155'),
+          'stroke-width': '1.2'
+        }));
+        const txt = createSvgEl('text', {
+          x: mx, y: my + 4,
+          fill: inFinal ? '#6ee7b7' : (active ? '#e0f2fe' : '#cbd5e1'),
+          'font-size': '11', 'font-weight': '700', 'text-anchor': 'middle'
+        });
+        txt.textContent = `${edge.dist} km`;
+        gLabel.appendChild(txt);
+        svg.appendChild(gLabel);
+      }
+
+      // 2) Nós (Cidades)
+      for (const [city, pos] of Object.entries(POS)) {
+        const isCurrent = step.current === city;
+        const isFinal = finalSet.has(city);
+        const isFrontier = frontierNames.has(city);
+        const isExpanded = expandedNames.has(city);
+
+        let fill = '#1e293b';
+        let stroke = '#64748b';
+        let strokeW = '2.5';
+
+        if (isFinal) {
+          fill = '#059669'; stroke = '#34d399'; strokeW = '3.5';
+        } else if (isCurrent) {
+          fill = '#0284c7'; stroke = '#38bdf8'; strokeW = '3.5';
+        } else if (isFrontier) {
+          fill = '#78350f'; stroke = '#f59e0b'; strokeW = '3';
+        } else if (isExpanded) {
+          fill = '#334155'; stroke = '#94a3b8'; strokeW = '2.5';
+        }
+
+        const gNode = createSvgEl('g');
+
+        if (isCurrent) {
+          gNode.appendChild(createSvgEl('circle', {
+            cx: pos.x, cy: pos.y, r: 26,
+            fill: 'none', stroke: isFinal ? '#34d399' : '#38bdf8',
+            'stroke-width': '2.5', class: 'pulse-ring'
+          }));
+        }
+
+        gNode.appendChild(createSvgEl('circle', {
+          cx: pos.x, cy: pos.y, r: 21,
+          fill, stroke, 'stroke-width': strokeW
+        }));
+
+        // Badge interno: mostra h(n) ou f(n) no A*
+        const stat = step.nodeStats[city];
+        const innerText = createSvgEl('text', {
+          x: pos.x, y: pos.y + 4,
+          fill: '#f8fafc', 'font-size': '11', 'font-weight': '800', 'text-anchor': 'middle'
+        });
+        if (algo === 'A*' && stat) {
+          innerText.textContent = `f:${stat.f}`;
+        } else if (algo === 'Gulosa') {
+          innerText.textContent = `h:${H_PI[city]}`;
+        } else if (stat) {
+          innerText.textContent = `${stat.realG}`;
+        } else {
+          innerText.textContent = `h:${H_PI[city]}`;
+        }
+        gNode.appendChild(innerText);
+
+        // Nome da cidade + subtítulo (Origem/Destino + h/g)
+        let lx = pos.x, ly = pos.y, anchor = 'middle';
+        if (pos.labelPos === 'right') { lx = pos.x + 28; ly = pos.y - 2; anchor = 'start'; }
+        else if (pos.labelPos === 'left') { lx = pos.x - 28; ly = pos.y - 2; anchor = 'end'; }
+        else if (pos.labelPos === 'bottom') { lx = pos.x; ly = pos.y + 36; anchor = 'middle'; }
+
+        const nameEl = createSvgEl('text', {
+          x: lx, y: ly, fill: '#f8fafc',
+          'font-size': '13', 'font-weight': '700', 'text-anchor': anchor
+        });
+        const suffix = city === START ? ' (Início)' : (city === GOAL ? ' (Meta)' : '');
+        nameEl.textContent = DISPLAY_NAME[city] + suffix;
+        gNode.appendChild(nameEl);
+
+        const subEl = createSvgEl('text', {
+          x: lx, y: ly + 15, fill: '#94a3b8',
+          'font-size': '11', 'font-weight': '600', 'text-anchor': anchor
+        });
+        if (algo === 'A*' && stat) {
+          subEl.textContent = `g=${stat.g} · h=${H_PI[city]}`;
+        } else if (stat) {
+          subEl.textContent = `dist=${stat.realG}km · h=${H_PI[city]}`;
+        } else {
+          subEl.textContent = `h=${H_PI[city]} km`;
+        }
+        gNode.appendChild(subEl);
+
+        svg.appendChild(gNode);
+      }
+    }
+
+    // =========================================================================
+    // 4. ESTADO DA INTERFACE E CONTROLES
+    // =========================================================================
+    let currentAlgo = 'A*';
+    let currentIdx = 0;
+    let playTimer = null;
+
+    const elStepCounter = document.getElementById('stepCounter');
+    const elAlgoBadge = document.getElementById('algoBadge');
+    const elFormulaMath = document.getElementById('formulaMath');
+    const elFormulaDesc = document.getElementById('formulaDesc');
+    const elMetricExpanded = document.getElementById('metricExpanded');
+    const elMetricCurrentG = document.getElementById('metricCurrentG');
+    const elMetricCurrentH = document.getElementById('metricCurrentH');
+    const elExpTitle = document.getElementById('expTitle');
+    const elExpText = document.getElementById('expText');
+    const elEvalList = document.getElementById('evalList');
+    const elFrontierTitle = document.getElementById('frontierTitle');
+    const elFrontierSub = document.getElementById('frontierSubtitle');
+    const elFrontierChips = document.getElementById('frontierChips');
+
+    const btnReset = document.getElementById('btnReset');
+    const btnPrev = document.getElementById('btnPrev');
+    const btnPlay = document.getElementById('btnPlay');
+    const btnNext = document.getElementById('btnNext');
+    const btnEnd = document.getElementById('btnEnd');
+    const speedSelect = document.getElementById('speedSelect');
+
+    function stopPlay() {
+      if (playTimer) {
+        clearInterval(playTimer);
+        playTimer = null;
+      }
+      btnPlay.textContent = '▶ Reproduzir';
+    }
+
+    function togglePlay() {
+      const steps = TRACES[currentAlgo].steps;
+      if (playTimer) {
+        stopPlay();
+        return;
+      }
+      if (currentIdx >= steps.length - 1) currentIdx = 0;
+      renderAll();
+      btnPlay.textContent = '⏸ Pausar';
+      playTimer = setInterval(() => {
+        if (currentIdx < steps.length - 1) {
+          currentIdx++;
+          renderAll();
+        } else {
+          stopPlay();
+        }
+      }, Number(speedSelect.value));
+    }
+
+    function renderComparisonTable() {
+      const tbody = document.getElementById('compareBody');
+      tbody.innerHTML = '';
+      ALL_ALGOS.forEach(algo => {
+        const meta = ALGO_META[algo];
+        const res = TRACES[algo];
+        const tr = document.createElement('tr');
+        if (algo === currentAlgo) tr.className = 'active-row';
+        tr.style.cursor = 'pointer';
+        tr.title = `Clique para simular ${meta.title}`;
+        tr.addEventListener('click', () => selectAlgo(algo));
+
+        tr.innerHTML = `
+          <td><strong>${meta.title}</strong></td>
+          <td>${meta.structure}</td>
+          <td>${meta.usesH}</td>
+          <td><strong>${res.nosExpandidos}</strong></td>
+          <td><strong>${res.totalKm} km</strong></td>
+          <td><span class="pill ${meta.optimalClass}">${meta.optimalText}</span></td>
+          <td style="font-size:0.78rem;color:#cbd5e1">${res.finalPath.map(c => DISPLAY_NAME[c]).join(' → ')}</td>
+        `;
+        tbody.appendChild(tr);
+      });
+    }
+
+    function renderAll() {
+      const trace = TRACES[currentAlgo];
+      const step = trace.steps[currentIdx];
+      const meta = ALGO_META[currentAlgo];
+
+      // Graph
+      renderGraph(currentAlgo, step);
+
+      // Header & Badges
+      elStepCounter.textContent = `Passo ${currentIdx} / ${trace.steps.length - 1}`;
+      elAlgoBadge.textContent = meta.title;
+      elFormulaMath.textContent = meta.formula;
+      elFormulaDesc.textContent = meta.desc;
+
+      // Metrics
+      elMetricExpanded.textContent = step.nosExpandidos;
+      elMetricCurrentG.textContent = `${step.currentG} km`;
+      elMetricCurrentH.textContent = `${step.currentH} km`;
+
+      // Didactic explanation
+      elExpTitle.textContent = step.title;
+      elExpText.innerHTML = step.text;
+      elEvalList.innerHTML = '';
+      step.evaluations.forEach(ev => {
+        const div = document.createElement('div');
+        div.className = `eval-item ${ev.type}`;
+        div.innerHTML = ev.html;
+        elEvalList.appendChild(div);
+      });
+
+      // Frontier
+      elFrontierTitle.textContent = meta.frontierTitle;
+      elFrontierSub.textContent = meta.frontierSub;
+      elFrontierChips.innerHTML = '';
+      if (step.frontier.length === 0) {
+        const empty = document.createElement('span');
+        empty.className = 'chip empty';
+        empty.textContent = 'Fronteira vazia (busca encerrada)';
+        elFrontierChips.appendChild(empty);
+      } else {
+        step.frontier.forEach((item, idx) => {
+          const span = document.createElement('span');
+          span.className = 'chip' + (idx === 0 ? ' next' : '');
+          let detail = '';
+          if (currentAlgo === 'A*') detail = ` (f=${item.f} | g=${item.g} + h=${item.h})`;
+          else if (currentAlgo === 'Gulosa') detail = ` (h=${item.h})`;
+          else detail = ` (${item.realG} km)`;
+          span.textContent = `${idx === 0 ? '→ ' : ''}${DISPLAY_NAME[item.estado]}${detail}`;
+          elFrontierChips.appendChild(span);
+        });
+      }
+
+      // Buttons state
+      btnReset.disabled = currentIdx === 0;
+      btnPrev.disabled = currentIdx === 0;
+      btnNext.disabled = currentIdx === trace.steps.length - 1;
+      btnEnd.disabled = currentIdx === trace.steps.length - 1;
+
+      // Tabs & table highlight
+      document.querySelectorAll('.algo-btn').forEach(b => {
+        b.classList.toggle('active', b.dataset.algo === currentAlgo);
+      });
+      renderComparisonTable();
+    }
+
+    function selectAlgo(algo) {
+      stopPlay();
+      currentAlgo = algo;
+      currentIdx = 0;
+      renderAll();
+    }
+
+    // Event Listeners
+    document.querySelectorAll('.algo-btn').forEach(btn => {
+      btn.addEventListener('click', () => selectAlgo(btn.dataset.algo));
+    });
+
+    btnReset.addEventListener('click', () => { stopPlay(); currentIdx = 0; renderAll(); });
+    btnPrev.addEventListener('click', () => { stopPlay(); if (currentIdx > 0) { currentIdx--; renderAll(); } });
+    btnNext.addEventListener('click', () => {
+      stopPlay();
+      if (currentIdx < TRACES[currentAlgo].steps.length - 1) { currentIdx++; renderAll(); }
+    });
+    btnEnd.addEventListener('click', () => {
+      stopPlay();
+      currentIdx = TRACES[currentAlgo].steps.length - 1;
+      renderAll();
+    });
+    btnPlay.addEventListener('click', togglePlay);
+    speedSelect.addEventListener('change', () => {
+      if (playTimer) { stopPlay(); togglePlay(); }
+    });
+
+    // Atalhos de teclado para apresentação fluida
+    document.addEventListener('keydown', (e) => {
+      if (e.target.tagName === 'SELECT') return;
+      if (e.key === 'ArrowRight') {
+        e.preventDefault();
+        btnNext.click();
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        btnPrev.click();
+      } else if (e.key === ' ') {
+        e.preventDefault();
+        togglePlay();
+      }
+    });
+
+    // Inicializa
+    renderAll();
+  </script>
+</body>
+</html>
