@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Algoritmos de Busca em IA — Malha Rodoviária do Piauí</title>
+  <title>Simulador Visual de Buscas em IA — Piauí &amp; 8-Puzzle</title>
   <style>
     :root {
       --bg: #0f172a;
@@ -18,7 +18,6 @@
       --emerald: #10b981;
       --violet: #a78bfa;
       --rose: #fb7185;
-      --visited: #475569;
     }
 
     * {
@@ -43,6 +42,12 @@
       border-bottom: 1px solid var(--border);
       padding: 14px 24px;
       display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .header-top {
+      display: flex;
       flex-wrap: wrap;
       align-items: center;
       justify-content: space-between;
@@ -56,6 +61,7 @@
       display: flex;
       align-items: center;
       gap: 10px;
+      flex-wrap: wrap;
     }
 
     .brand .tag {
@@ -63,7 +69,7 @@
       font-weight: 600;
       text-transform: uppercase;
       letter-spacing: 0.06em;
-      padding: 3px 8px;
+      padding: 3px 9px;
       border-radius: 999px;
       background: rgba(56, 189, 248, 0.15);
       color: var(--accent);
@@ -76,7 +82,47 @@
       margin-top: 2px;
     }
 
-    /* Algorithm Tabs */
+    /* Domain Switcher */
+    .domain-switcher {
+      display: inline-flex;
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 4px;
+      gap: 4px;
+    }
+
+    .domain-btn {
+      background: transparent;
+      color: var(--text-muted);
+      border: none;
+      border-radius: 8px;
+      padding: 8px 14px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.18s ease;
+    }
+
+    .domain-btn:hover {
+      color: var(--text);
+    }
+
+    .domain-btn.active {
+      background: var(--accent-strong);
+      color: #fff;
+      box-shadow: 0 2px 10px rgba(2, 132, 199, 0.35);
+    }
+
+    /* Header Bottom: Algorithm Tabs + Scenario Pills */
+    .header-controls {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
     .algo-tabs {
       display: flex;
       gap: 8px;
@@ -88,15 +134,15 @@
       color: var(--text-muted);
       border: 1px solid var(--border);
       border-radius: 10px;
-      padding: 8px 14px;
-      font-size: 0.86rem;
+      padding: 7px 13px;
+      font-size: 0.84rem;
       font-weight: 600;
       cursor: pointer;
       transition: all 0.18s ease;
       display: flex;
       flex-direction: column;
       align-items: flex-start;
-      min-width: 112px;
+      min-width: 118px;
     }
 
     .algo-btn small {
@@ -120,6 +166,46 @@
     .algo-btn.active small {
       color: var(--accent);
       opacity: 1;
+    }
+
+    .scenario-bar {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .scenario-bar.visible {
+      display: flex;
+    }
+
+    .scenario-bar span.lbl {
+      font-size: 0.78rem;
+      font-weight: 600;
+      color: var(--text-muted);
+    }
+
+    .scenario-btn {
+      background: var(--bg);
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 6px 11px;
+      font-size: 0.8rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    .scenario-btn:hover {
+      border-color: var(--violet);
+      color: var(--text);
+    }
+
+    .scenario-btn.active {
+      background: rgba(167, 139, 250, 0.18);
+      border-color: var(--violet);
+      color: #ede9fe;
     }
 
     /* Main Grid */
@@ -178,11 +264,11 @@
       border: 1px solid var(--border);
     }
 
-    /* Map / Graph Canvas */
-    .map-container {
+    /* Stage Containers (Map vs 8-Puzzle) */
+    .stage-container {
       position: relative;
       flex: 1;
-      min-height: 490px;
+      min-height: 495px;
       background:
         radial-gradient(circle at 25% 20%, rgba(56, 189, 248, 0.06), transparent 45%),
         radial-gradient(circle at 80% 80%, rgba(16, 185, 129, 0.05), transparent 45%),
@@ -190,7 +276,7 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 8px;
+      padding: 12px;
     }
 
     svg#graphSvg {
@@ -198,6 +284,225 @@
       height: 100%;
       max-height: 540px;
       user-select: none;
+    }
+
+    /* 8-Puzzle Stage */
+    #puzzleStage {
+      display: none;
+      width: 100%;
+      height: 100%;
+      flex-direction: column;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      padding: 8px 6px;
+    }
+
+    .puzzle-top-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 32px;
+      flex-wrap: wrap;
+      width: 100%;
+    }
+
+    .board-block {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .board-caption {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+    }
+
+    .puzzle-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 84px);
+      grid-template-rows: repeat(3, 84px);
+      gap: 8px;
+      background: #162032;
+      padding: 10px;
+      border-radius: 16px;
+      border: 2px solid var(--border);
+      box-shadow: 0 10px 28px rgba(0, 0, 0, 0.35);
+    }
+
+    .puzzle-grid.goal-reached {
+      border-color: var(--emerald);
+      box-shadow: 0 0 24px rgba(16, 185, 129, 0.25);
+    }
+
+    .tile {
+      position: relative;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.8rem;
+      font-weight: 800;
+      transition: transform 0.2s ease, background 0.2s ease;
+      user-select: none;
+    }
+
+    .tile.correct {
+      background: rgba(16, 185, 129, 0.2);
+      border: 2px solid var(--emerald);
+      color: #a7f3d0;
+    }
+
+    .tile.misplaced {
+      background: rgba(245, 158, 11, 0.18);
+      border: 2px solid var(--amber);
+      color: #fde68a;
+    }
+
+    .tile.empty {
+      background: rgba(15, 23, 42, 0.65);
+      border: 2px dashed #334155;
+      color: transparent;
+    }
+
+    .tile .dist-badge {
+      position: absolute;
+      bottom: 4px;
+      right: 6px;
+      font-size: 0.66rem;
+      font-weight: 700;
+      padding: 1px 4px;
+      border-radius: 4px;
+      background: rgba(15, 23, 42, 0.85);
+      color: #fcd34d;
+    }
+
+    .tile.correct .dist-badge {
+      color: #6ee7b7;
+    }
+
+    /* Mini Goal Reference Board */
+    .puzzle-grid.mini-ref {
+      grid-template-columns: repeat(3, 44px);
+      grid-template-rows: repeat(3, 44px);
+      gap: 4px;
+      padding: 6px;
+      border-radius: 10px;
+      border-width: 1px;
+      box-shadow: none;
+    }
+
+    .puzzle-grid.mini-ref .tile {
+      font-size: 0.95rem;
+      border-radius: 6px;
+      border-width: 1px;
+    }
+
+    .puzzle-heur-summary {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .heur-pill {
+      font-size: 0.78rem;
+      padding: 5px 10px;
+      border-radius: 8px;
+      background: rgba(30, 41, 59, 0.9);
+      border: 1px solid var(--border);
+      color: #cbd5e1;
+    }
+
+    .heur-pill strong {
+      color: var(--accent);
+    }
+
+    /* Neighbors / Children Strip in 8-Puzzle */
+    .children-strip {
+      width: 100%;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 10px 12px;
+    }
+
+    .children-strip-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      color: var(--text-muted);
+      margin-bottom: 8px;
+    }
+
+    .children-cards {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .child-card {
+      background: #162032;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 10px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      min-width: 120px;
+    }
+
+    .child-card.added {
+      border-color: var(--amber);
+    }
+
+    .child-card.ignored {
+      opacity: 0.55;
+    }
+
+    .child-card.best {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.1);
+    }
+
+    .child-card.goal {
+      border-color: var(--emerald);
+      background: rgba(16, 185, 129, 0.14);
+    }
+
+    .child-action {
+      font-size: 0.76rem;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .child-meta {
+      font-size: 0.7rem;
+      font-family: 'Cascadia Code', Consolas, monospace;
+      color: var(--accent);
+    }
+
+    .puzzle-grid.tiny {
+      grid-template-columns: repeat(3, 24px);
+      grid-template-rows: repeat(3, 24px);
+      gap: 2px;
+      padding: 4px;
+      border-radius: 6px;
+      border-width: 1px;
+      box-shadow: none;
+    }
+
+    .puzzle-grid.tiny .tile {
+      font-size: 0.72rem;
+      border-radius: 3px;
+      border-width: 1px;
     }
 
     /* Legend */
@@ -294,12 +599,6 @@
     }
 
     /* Right Panel: Didactic Explanation */
-    .right-col {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
     .didactic-body {
       padding: 16px;
       display: flex;
@@ -327,7 +626,7 @@
 
     .formula-math {
       font-family: 'Cascadia Code', 'Fira Code', Consolas, monospace;
-      font-size: 0.98rem;
+      font-size: 0.96rem;
       font-weight: 700;
       color: var(--text);
     }
@@ -353,7 +652,7 @@
     }
 
     .metric-card .val {
-      font-size: 1.25rem;
+      font-size: 1.22rem;
       font-weight: 800;
       color: var(--text);
     }
@@ -379,7 +678,7 @@
     }
 
     .explanation-text {
-      font-size: 0.85rem;
+      font-size: 0.84rem;
       color: #cbd5e1;
     }
 
@@ -388,10 +687,12 @@
       display: flex;
       flex-direction: column;
       gap: 6px;
+      max-height: 225px;
+      overflow-y: auto;
     }
 
     .eval-item {
-      font-size: 0.8rem;
+      font-size: 0.79rem;
       padding: 7px 10px;
       border-radius: 8px;
       background: rgba(30, 41, 59, 0.7);
@@ -422,7 +723,7 @@
     .eval-item code {
       font-family: 'Cascadia Code', Consolas, monospace;
       color: var(--accent);
-      font-size: 0.78rem;
+      font-size: 0.76rem;
     }
 
     /* Frontier Box */
@@ -441,12 +742,13 @@
       font-size: 0.8rem;
       font-weight: 700;
       color: var(--text);
+      gap: 8px;
     }
 
     .frontier-header span.sub {
       font-weight: 500;
       color: var(--text-muted);
-      font-size: 0.74rem;
+      font-size: 0.73rem;
     }
 
     .frontier-chips {
@@ -457,8 +759,8 @@
     }
 
     .chip {
-      font-size: 0.76rem;
-      padding: 5px 9px;
+      font-size: 0.74rem;
+      padding: 4px 8px;
       border-radius: 8px;
       background: rgba(245, 158, 11, 0.14);
       border: 1px solid rgba(245, 158, 11, 0.4);
@@ -545,7 +847,6 @@
       border: 1px solid rgba(251, 113, 133, 0.35);
     }
 
-    /* SVG Animations */
     @keyframes pulseRing {
       0% { r: 26; opacity: 0.9; }
       100% { r: 38; opacity: 0; }
@@ -573,55 +874,67 @@
 </head>
 <body>
   <header>
-    <div class="brand">
-      <h1>
-        <span>Simulador Visual de Buscas em IA</span>
-        <span class="tag">Malha Rodoviária do Piauí</span>
-      </h1>
-      <p>Origem: <strong>São Raimundo Nonato</strong> &rarr; Destino: <strong>Parnaíba</strong> (baseado em <code>trabalho_ia_buscas.py</code>)</p>
+    <div class="header-top">
+      <div class="brand">
+        <h1>
+          <span>Simulador Visual de Buscas em IA</span>
+          <span class="tag" id="domainTag">Domínio 1 · Piauí</span>
+        </h1>
+        <p id="domainSubtitle">Origem: <strong>São Raimundo Nonato</strong> &rarr; Destino: <strong>Parnaíba</strong> (baseado em <code>busca.py</code>)</p>
+      </div>
+
+      <div class="domain-switcher" role="tablist" aria-label="Selecionar domínio">
+        <button class="domain-btn active" data-domain="piaui">🗺️ Domínio 1: Malha do Piauí</button>
+        <button class="domain-btn" data-domain="puzzle">🧩 Domínio 2: 8-Puzzle</button>
+      </div>
     </div>
 
-    <div class="algo-tabs" role="tablist" aria-label="Escolha o algoritmo de busca">
-      <button class="algo-btn active" data-algo="A*">
-        <span>A* (Estrela)</span>
-        <small>f(n) = g(n) + h(n)</small>
-      </button>
-      <button class="algo-btn" data-algo="Gulosa">
-        <span>Busca Gulosa</span>
-        <small>f(n) = h(n)</small>
-      </button>
-      <button class="algo-btn" data-algo="BFS">
-        <span>BFS (Largura)</span>
-        <small>Fila (FIFO)</small>
-      </button>
-      <button class="algo-btn" data-algo="DFS">
-        <span>DFS (Profundidade)</span>
-        <small>Pilha (LIFO)</small>
-      </button>
+    <div class="header-controls">
+      <div class="algo-tabs" id="algoTabs" role="tablist" aria-label="Escolha o algoritmo de busca"></div>
+
+      <div class="scenario-bar" id="scenarioBar">
+        <span class="lbl">Cenário (busca.py):</span>
+        <button class="scenario-btn active" data-scenario="d=5">d=5 (2 mov.)</button>
+        <button class="scenario-btn" data-scenario="d=10">d=10 (5 mov.)</button>
+        <button class="scenario-btn" data-scenario="d=15">d=15 (8 mov.)</button>
+      </div>
     </div>
   </header>
 
   <main>
-    <!-- Left Panel: Interactive Graph -->
+    <!-- Left Panel: Graph (Domain 1) or 8-Puzzle Board (Domain 2) -->
     <section class="panel">
       <div class="panel-header">
-        <div class="panel-title">
-          <span>Mapa de Estados — Piauí (Norte &uarr; / Sul &darr;)</span>
-        </div>
+        <div class="panel-title" id="stageTitle">Mapa de Estados — Piauí (Norte &uarr; / Sul &darr;)</div>
         <span class="step-badge" id="stepCounter">Passo 0 / 0</span>
       </div>
 
-      <div class="map-container">
+      <div class="stage-container">
         <svg id="graphSvg" viewBox="0 0 760 540" aria-label="Grafo das cidades do Piauí"></svg>
+
+        <div id="puzzleStage" aria-label="Tabuleiro do Jogo dos 8 Números">
+          <div class="puzzle-top-row">
+            <div class="board-block">
+              <div class="board-caption" id="puzzleBoardCaption">Estado Atual em Análise</div>
+              <div class="puzzle-grid" id="puzzleMainGrid"></div>
+            </div>
+
+            <div class="board-block">
+              <div class="board-caption">Estado Objetivo</div>
+              <div class="puzzle-grid mini-ref" id="puzzleGoalGrid"></div>
+            </div>
+          </div>
+
+          <div class="puzzle-heur-summary" id="puzzleHeurSummary"></div>
+
+          <div class="children-strip">
+            <div class="children-strip-title" id="childrenStripTitle">Movimentos Avaliados neste Passo</div>
+            <div class="children-cards" id="childrenCards"></div>
+          </div>
+        </div>
       </div>
 
-      <div class="legend">
-        <div class="legend-item"><span class="dot" style="background:#334155;border:2px solid #64748b"></span> Não visitado</div>
-        <div class="legend-item"><span class="dot" style="background:#f59e0b"></span> Na Fronteira</div>
-        <div class="legend-item"><span class="dot" style="background:#38bdf8"></span> Analisando Agora</div>
-        <div class="legend-item"><span class="dot" style="background:#64748b"></span> Já Expandido</div>
-        <div class="legend-item"><span class="dot" style="background:#10b981"></span> Rota Final</div>
-      </div>
+      <div class="legend" id="legendBar"></div>
 
       <div class="controls-bar">
         <div class="btn-group">
@@ -636,8 +949,9 @@
           <label for="speedSelect">Velocidade:</label>
           <select id="speedSelect">
             <option value="2200">Lenta (Didática)</option>
-            <option value="1300" selected>Normal</option>
-            <option value="650">Rápida</option>
+            <option value="1200" selected>Normal</option>
+            <option value="500">Rápida</option>
+            <option value="180">Turbo (BFS)</option>
           </select>
           <span class="kbd-hint">Atalhos: <kbd>←</kbd> <kbd>→</kbd> <kbd>Espaço</kbd></span>
         </div>
@@ -645,7 +959,7 @@
     </section>
 
     <!-- Right Panel: Didactic Mode -->
-    <section class="panel right-col">
+    <section class="panel">
       <div class="panel-header">
         <div class="panel-title">Painel Didático (Modo Professor)</div>
         <span class="step-badge" id="algoBadge">A*</span>
@@ -653,9 +967,9 @@
 
       <div class="didactic-body">
         <div class="formula-box">
-          <div class="formula-label" id="formulaLabel">Critério de Decisão</div>
+          <div class="formula-label">Critério de Decisão</div>
           <div class="formula-math" id="formulaMath">f(n) = g(n) + h(n)</div>
-          <div class="formula-desc" id="formulaDesc">Combina o custo real já percorrido g(n) com a estimativa em linha reta até Parnaíba h(n).</div>
+          <div class="formula-desc" id="formulaDesc"></div>
         </div>
 
         <div class="metrics-row">
@@ -664,27 +978,25 @@
             <div class="lbl">Nós Expandidos</div>
           </div>
           <div class="metric-card">
-            <div class="val" id="metricCurrentG">0 km</div>
-            <div class="lbl">Custo Real g(n)</div>
+            <div class="val" id="metricCurrentG">0</div>
+            <div class="lbl" id="metricGLbl">Custo Real g(n)</div>
           </div>
           <div class="metric-card">
-            <div class="val" id="metricCurrentH">600 km</div>
-            <div class="lbl">Heurística h(n)</div>
+            <div class="val" id="metricCurrentH">0</div>
+            <div class="lbl" id="metricHLbl">Heurística h(n)</div>
           </div>
         </div>
 
         <div class="explanation-box">
           <div class="explanation-title" id="expTitle">Estado Inicial</div>
-          <div class="explanation-text" id="expText">
-            Clique em <strong>Próximo</strong> ou pressione a seta <strong>→</strong> para acompanhar passo a passo como o algoritmo escolhe a rota até Parnaíba.
-          </div>
+          <div class="explanation-text" id="expText"></div>
           <div class="eval-list" id="evalList"></div>
         </div>
 
         <div class="frontier-box">
           <div class="frontier-header">
-            <span id="frontierTitle">Fronteira (Fila de Prioridade)</span>
-            <span class="sub" id="frontierSubtitle">Menor f(n) sai primeiro</span>
+            <span id="frontierTitle">Fronteira</span>
+            <span class="sub" id="frontierSubtitle"></span>
           </div>
           <div class="frontier-chips" id="frontierChips"></div>
         </div>
@@ -696,8 +1008,8 @@
   <section class="compare-section">
     <div class="panel">
       <div class="panel-header">
-        <div class="panel-title">Comparação Geral dos 4 Algoritmos (São Raimundo Nonato &rarr; Parnaíba)</div>
-        <span class="step-badge">Clique em uma linha para visualizar o algoritmo</span>
+        <div class="panel-title" id="compareTitle">Comparação Geral dos Algoritmos</div>
+        <span class="step-badge">Clique em uma linha para simular o algoritmo</span>
       </div>
       <div class="table-wrap">
         <table>
@@ -705,11 +1017,11 @@
             <tr>
               <th>Algoritmo</th>
               <th>Estrutura</th>
-              <th>Usa Heurística?</th>
+              <th>Heurística</th>
               <th>Nós Expandidos</th>
-              <th>Distância Real</th>
+              <th id="compareCostHeader">Distância Real</th>
               <th>Garantia de Ótimo?</th>
-              <th>Rota Encontrada</th>
+              <th id="comparePathHeader">Rota Encontrada</th>
             </tr>
           </thead>
           <tbody id="compareBody"></tbody>
@@ -720,7 +1032,7 @@
 
   <script>
     // =========================================================================
-    // 1. DADOS EXATOS DO ARQUIVO trabalho_ia_buscas.py
+    // 1. DOMÍNIO 1: MALHA RODOVIÁRIA DO PIAUÍ (EXATO DE busca.py)
     // =========================================================================
     const GRAFO_PI = {
       'Sao Raimundo Nonato': [['Canto do Buriti', 100], ['Floriano', 250]],
@@ -735,15 +1047,9 @@
     };
 
     const H_PI = {
-      'Parnaiba': 0,
-      'Piripiri': 130,
-      'Campo Maior': 200,
-      'Teresina': 270,
-      'Oeiras': 420,
-      'Picos': 400,
-      'Floriano': 450,
-      'Canto do Buriti': 520,
-      'Sao Raimundo Nonato': 600
+      'Parnaiba': 0, 'Piripiri': 130, 'Campo Maior': 200,
+      'Teresina': 270, 'Oeiras': 420, 'Picos': 400,
+      'Floriano': 450, 'Canto do Buriti': 520, 'Sao Raimundo Nonato': 600
     };
 
     const DISPLAY_NAME = {
@@ -758,7 +1064,6 @@
       'Parnaiba': 'Parnaíba'
     };
 
-    // Coordenadas estilizadas respeitando a geografia do Piauí (Norte no topo, Sul embaixo)
     const POS = {
       'Parnaiba':            { x: 470, y: 58,  labelPos: 'right' },
       'Piripiri':            { x: 445, y: 145, labelPos: 'right' },
@@ -771,138 +1076,205 @@
       'Sao Raimundo Nonato': { x: 345, y: 492, labelPos: 'right' }
     };
 
-    const START = 'Sao Raimundo Nonato';
-    const GOAL = 'Parnaiba';
+    const START_PI = 'Sao Raimundo Nonato';
+    const GOAL_PI = 'Parnaiba';
 
-    const ALGO_META = {
+    const UNIQUE_EDGES = [];
+    {
+      const seen = new Set();
+      for (const [u, neighbors] of Object.entries(GRAFO_PI)) {
+        for (const [v, dist] of neighbors) {
+          const key = [u, v].sort().join('--');
+          if (!seen.has(key)) {
+            seen.add(key);
+            UNIQUE_EDGES.push({ u, v, dist });
+          }
+        }
+      }
+    }
+
+    const PIAUI_ALGOS = ['A*', 'Gulosa', 'BFS', 'DFS'];
+    const PIAUI_META = {
       'A*': {
-        title: 'A* (Estrela)',
-        structure: 'Fila de Prioridade (Min-Heap)',
-        usesH: 'Sim (admissível)',
-        optimalText: 'Sim (ótimo)',
-        optimalClass: 'yes',
+        label: 'A* (Estrela)', sub: 'f(n) = g(n) + h(n)',
+        structure: 'Fila de Prioridade', heur: 'Linha reta (admissível)',
+        optimalText: 'Sim (ótimo)', optimalClass: 'yes',
         formula: 'f(n) = g(n) + h(n)',
         desc: 'Soma o custo real percorrido g(n) com a distância em linha reta h(n). Garante a menor distância total em km.',
         frontierTitle: 'Fronteira — Fila de Prioridade (A*)',
         frontierSub: 'Menor f(n) = g + h sai primeiro'
       },
       'Gulosa': {
-        title: 'Busca Gulosa (Best-First)',
-        structure: 'Fila de Prioridade (Min-Heap)',
-        usesH: 'Sim (apenas h)',
-        optimalText: 'Não garante',
-        optimalClass: 'warn',
+        label: 'Busca Gulosa', sub: 'f(n) = h(n)',
+        structure: 'Fila de Prioridade', heur: 'Apenas h(n)',
+        optimalText: 'Não garante', optimalClass: 'warn',
         formula: 'f(n) = h(n)',
-        desc: 'Olha apenas para a distância em linha reta até Parnaíba, ignorando quantos km já foram percorridos.',
+        desc: 'Avalia apenas a distância em linha reta até Parnaíba, ignorando quantos km já foram percorridos.',
         frontierTitle: 'Fronteira — Fila de Prioridade (Gulosa)',
         frontierSub: 'Menor h(n) sai primeiro'
       },
       'BFS': {
-        title: 'BFS (Busca em Largura)',
-        structure: 'Fila (FIFO)',
-        usesH: 'Não (cega)',
-        optimalText: 'Apenas em saltos',
-        optimalClass: 'warn',
+        label: 'BFS (Largura)', sub: 'Fila (FIFO)',
+        structure: 'Fila (FIFO)', heur: 'Não (cega)',
+        optimalText: 'Apenas em saltos', optimalClass: 'warn',
         formula: 'Ordem: Primeiro a Entrar, Primeiro a Sair',
-        desc: 'Explora camada por camada. Encontra o caminho com menos cidades, mas não considera os km das estradas.',
+        desc: 'Explora camada por camada. Encontra o caminho com menos cidades, sem considerar os km das estradas.',
         frontierTitle: 'Fronteira — Fila (FIFO)',
         frontierSub: 'Esquerda sai primeiro'
       },
       'DFS': {
-        title: 'DFS (Busca em Profundidade)',
-        structure: 'Pilha (LIFO)',
-        usesH: 'Não (cega)',
-        optimalText: 'Não',
-        optimalClass: 'no',
+        label: 'DFS (Profundidade)', sub: 'Pilha (LIFO)',
+        structure: 'Pilha (LIFO)', heur: 'Não (cega)',
+        optimalText: 'Não', optimalClass: 'no',
         formula: 'Ordem: Último a Entrar, Primeiro a Sair',
-        desc: 'Mergulha o máximo possível em um ramo antes de voltar (backtracking). Não garante caminho curto nem ótimo.',
+        desc: 'Mergulha o máximo possível em um ramo antes de voltar (backtracking). Não garante caminho curto.',
         frontierTitle: 'Fronteira — Pilha (LIFO)',
         frontierSub: 'Topo da pilha sai primeiro'
       }
     };
 
     // =========================================================================
-    // 2. GERADOR DE PASSOS (ESPELHA EXATAMENTE trabalho_ia_buscas.py)
+    // 2. DOMÍNIO 2: JOGO DOS 8 NÚMEROS / 8-PUZZLE (EXATO DE busca.py)
     // =========================================================================
-    function edgeCost(a, b) {
-      const found = GRAFO_PI[a].find(([dest]) => dest === b);
-      return found ? found[1] : 0;
+    const OBJETIVO_8 = [1, 2, 3, 4, 5, 6, 7, 8, 0];
+    const GOAL_KEY_8 = OBJETIVO_8.join(',');
+
+    const PUZZLE_SCENARIOS = {
+      'd=5':  [1, 2, 3, 4, 0, 5, 7, 8, 6],
+      'd=10': [1, 0, 2, 4, 6, 3, 7, 5, 8],
+      'd=15': [4, 1, 2, 7, 6, 3, 0, 5, 8]
+    };
+
+    const PUZZLE_ALGOS = ['A*_h2', 'A*_h1', 'Gulosa_h2', 'BFS'];
+    const PUZZLE_META = {
+      'A*_h2': {
+        label: 'A* — Manhattan (h2)', sub: 'f(n) = g(n) + h2(n)',
+        structure: 'Fila de Prioridade', heur: 'h2: Dist. Manhattan',
+        optimalText: 'Sim (ótimo)', optimalClass: 'yes',
+        formula: 'f(n) = g(n) + h2(n)  [Manhattan]',
+        desc: 'Soma movimentos já feitos g(n) + soma das distâncias horizontais/verticais de cada peça até o lugar certo.',
+        frontierTitle: 'Fronteira — Fila de Prioridade (A* h2)',
+        frontierSub: 'Menor f(n) = g + h2 sai primeiro'
+      },
+      'A*_h1': {
+        label: 'A* — Peças Fora (h1)', sub: 'f(n) = g(n) + h1(n)',
+        structure: 'Fila de Prioridade', heur: 'h1: Peças fora',
+        optimalText: 'Sim (ótimo)', optimalClass: 'yes',
+        formula: 'f(n) = g(n) + h1(n)  [Peças Fora]',
+        desc: 'Soma movimentos já feitos g(n) + quantidade de peças fora da posição final (menos informada que h2).',
+        frontierTitle: 'Fronteira — Fila de Prioridade (A* h1)',
+        frontierSub: 'Menor f(n) = g + h1 sai primeiro'
+      },
+      'Gulosa_h2': {
+        label: 'Gulosa (h2 Manhattan)', sub: 'f(n) = h2(n)',
+        structure: 'Fila de Prioridade', heur: 'h2 (ignora g)',
+        optimalText: 'Não garante', optimalClass: 'warn',
+        formula: 'f(n) = h2(n)  [Apenas Heurística]',
+        desc: 'Escolhe sempre o tabuleiro com menor distância de Manhattan, ignorando quantos movimentos já foram gastos.',
+        frontierTitle: 'Fronteira — Fila de Prioridade (Gulosa)',
+        frontierSub: 'Menor h2(n) sai primeiro'
+      },
+      'BFS': {
+        label: 'BFS (Largura)', sub: 'Fila (FIFO)',
+        structure: 'Fila (FIFO)', heur: 'Não (cega)',
+        optimalText: 'Sim (custo=1)', optimalClass: 'yes',
+        formula: 'Ordem: Camada por camada (FIFO)',
+        desc: 'Garante menos movimentos (pois cada passo custa 1), mas explode em nós expandidos sem heurística!',
+        frontierTitle: 'Fronteira — Fila (FIFO)',
+        frontierSub: 'Esquerda sai primeiro'
+      }
+    };
+
+    function h1PecasFora(state) {
+      let c = 0;
+      for (let i = 0; i < 9; i++) {
+        if (state[i] !== 0 && state[i] !== OBJETIVO_8[i]) c++;
+      }
+      return c;
     }
 
-    function reconstructPath(node) {
+    function tileManhattan(val, idx) {
+      if (val === 0) return 0;
+      const r1 = Math.floor(idx / 3), c1 = idx % 3;
+      const goalIdx = val - 1; // 1->0, ..., 8->7
+      const r2 = Math.floor(goalIdx / 3), c2 = goalIdx % 3;
+      return Math.abs(r1 - r2) + Math.abs(c1 - c2);
+    }
+
+    function h2Manhattan(state) {
+      let dist = 0;
+      for (let i = 0; i < 9; i++) dist += tileManhattan(state[i], i);
+      return dist;
+    }
+
+    function sucessores8(state) {
+      const idxZero = state.indexOf(0);
+      const r = Math.floor(idxZero / 3), c = idxZero % 3;
+      const dirs = [
+        ['Cima', -1, 0],
+        ['Baixo', 1, 0],
+        ['Esquerda', 0, -1],
+        ['Direita', 0, 1]
+      ];
+      const out = [];
+      for (const [acao, dr, dc] of dirs) {
+        const nr = r + dr, nc = c + dc;
+        if (nr >= 0 && nr < 3 && nc >= 0 && nc < 3) {
+          const nIdx = nr * 3 + nc;
+          const next = state.slice();
+          next[idxZero] = next[nIdx];
+          next[nIdx] = 0;
+          out.push([acao, next, 1]);
+        }
+      }
+      return out;
+    }
+
+    // =========================================================================
+    // 3. GERADORES DE TRACE (ESPELHANDO EXATAMENTE busca.py)
+    // =========================================================================
+    function cloneObj(o) {
+      const out = {};
+      for (const [k, v] of Object.entries(o)) out[k] = { ...v };
+      return out;
+    }
+
+    function reconstructNodes(node) {
       const path = [];
       let curr = node;
       while (curr) {
-        path.push(curr.estado);
+        path.push({ acao: curr.acao, estado: curr.estado });
         curr = curr.pai;
       }
       return path.reverse();
     }
 
-    function computeRealCost(path) {
-      let total = 0;
-      for (let i = 0; i < path.length - 1; i++) {
-        total += edgeCost(path[i], path[i + 1]);
-      }
-      return total;
-    }
-
-    function cloneNodeInfo(map) {
-      const out = {};
-      for (const [k, v] of Object.entries(map)) out[k] = { ...v };
-      return out;
-    }
-
-    function generateTrace(algo) {
+    // --- Trace Domínio 1: Piauí ---
+    function generatePiauiTrace(algo) {
       const steps = [];
       const expandedSet = new Set();
-      const nodeStats = {}; // estado -> { g, h, f, realG }
+      const nodeStats = { [START_PI]: { g: 0, h: H_PI[START_PI], f: H_PI[START_PI], realG: 0 } };
       let nosExpandidos = 0;
 
-      // Estado inicial (Passo 0)
-      nodeStats[START] = { g: 0, h: H_PI[START], f: algo === 'Gulosa' ? H_PI[START] : H_PI[START], realG: 0 };
-
-      const makeFrontierSnapshot = (list) => list.map(n => ({
-        estado: n.estado,
-        g: n.g,
-        h: n.h,
-        f: n.f,
-        realG: n.realG,
-        pai: n.pai ? n.pai.estado : null
+      const snapFrontier = (list) => list.map(n => ({
+        estado: n.estado, g: n.g, h: n.h, f: n.f, realG: n.realG
       }));
 
       if (algo === 'A*' || algo === 'Gulosa') {
-        const isAStar = algo === 'A*';
+        const isGulosa = algo === 'Gulosa';
         let seq = 0;
-        const root = {
-          estado: START,
-          pai: null,
-          g: 0,
-          h: H_PI[START],
-          f: H_PI[START],
-          realG: 0,
-          seq: seq++
-        };
+        const root = { estado: START_PI, pai: null, acao: null, g: 0, h: H_PI[START_PI], f: H_PI[START_PI], realG: 0, seq: seq++ };
         const fronteira = [root];
-        const visitados = { [START]: isAStar ? 0 : H_PI[START] };
+        const visitados = { [START_PI]: 0 };
 
-        const sortHeap = () => {
-          fronteira.sort((a, b) => (a.f !== b.f ? a.f - b.f : a.seq - b.seq));
-        };
+        const sortHeap = () => fronteira.sort((a, b) => (a.f !== b.f ? a.f - b.f : a.seq - b.seq));
 
         steps.push({
-          stepNum: 0,
-          current: null,
-          expanded: [],
-          frontier: makeFrontierSnapshot(fronteira),
-          nodeStats: cloneNodeInfo(nodeStats),
-          activeEdges: [],
-          finalPath: null,
-          nosExpandidos: 0,
-          currentG: 0,
-          currentH: H_PI[START],
-          title: `Início — ${ALGO_META[algo].title}`,
-          text: `Começamos em <strong>${DISPLAY_NAME[START]}</strong> com destino a <strong>${DISPLAY_NAME[GOAL]}</strong>. A cidade inicial entra na fronteira com <code>h = ${H_PI[START]} km</code>.`,
+          current: null, expanded: [], frontier: snapFrontier(fronteira),
+          nodeStats: cloneObj(nodeStats), activeEdges: [], finalPath: null,
+          nosExpandidos: 0, currentG: 0, currentH: H_PI[START_PI],
+          title: `Início — ${PIAUI_META[algo].label}`,
+          text: `Partimos de <strong>${DISPLAY_NAME[START_PI]}</strong> rumo a <strong>${DISPLAY_NAME[GOAL_PI]}</strong>. A cidade inicial entra na fronteira com <code>h = ${H_PI[START_PI]} km</code>.`,
           evaluations: []
         });
 
@@ -913,116 +1285,83 @@
           nosExpandidos++;
           expandedSet.add(no.estado);
 
-          if (no.estado === GOAL) {
-            const finalPath = reconstructPath(no);
-            const totalKm = computeRealCost(finalPath);
+          if (no.estado === GOAL_PI) {
+            const pathNodes = reconstructNodes(no);
+            const finalPath = pathNodes.map(p => p.estado);
             steps.push({
-              stepNum: passo,
-              current: no.estado,
-              expanded: Array.from(expandedSet),
-              frontier: makeFrontierSnapshot(fronteira),
-              nodeStats: cloneNodeInfo(nodeStats),
-              activeEdges: [],
-              finalPath,
-              nosExpandidos,
-              currentG: totalKm,
-              currentH: 0,
-              title: `Passo ${passo} — Destino Alcançado: ${DISPLAY_NAME[GOAL]}!`,
-              text: isAStar
-                ? `Chegamos em <strong>Parnaíba</strong>! Como <code>h(Parnaíba) = 0</code>, temos <code>f = ${no.g} + 0 = ${no.f} km</code>. Nenhum nó restante na fronteira tem <code>f</code> menor, logo esta rota é <strong>garantidamente ótima</strong>.`
-                : `Chegamos em <strong>Parnaíba</strong>! A distância real percorrida foi de <strong>${totalKm} km</strong> em ${nosExpandidos} nós expandidos.`,
+              current: no.estado, expanded: Array.from(expandedSet), frontier: snapFrontier(fronteira),
+              nodeStats: cloneObj(nodeStats), activeEdges: [], finalPath,
+              nosExpandidos, currentG: no.g, currentH: 0,
+              title: `Passo ${passo} — Objetivo Alcançado: ${DISPLAY_NAME[GOAL_PI]}!`,
+              text: !isGulosa
+                ? `Chegamos em <strong>Parnaíba</strong>! <code>f = ${no.g} + 0 = ${no.f} km</code>. Como nenhum nó na fronteira tem <code>f</code> menor, a rota é <strong>garantidamente ótima</strong>.`
+                : `Chegamos em <strong>Parnaíba</strong>! Distância real percorrida: <strong>${no.g} km</strong> em ${nosExpandidos} nós expandidos.`,
               evaluations: [{
                 type: 'goal',
-                html: `<strong>Rota Final (${totalKm} km):</strong> ${finalPath.map(c => DISPLAY_NAME[c]).join(' → ')}`
+                html: `<strong>Rota Final (${no.g} km):</strong> ${finalPath.map(c => DISPLAY_NAME[c]).join(' → ')}`
               }]
             });
-            return { steps, finalPath, totalKm, nosExpandidos };
+            return { steps, finalPath, totalCost: no.g, nosExpandidos };
           }
 
           const evaluations = [];
           const activeEdges = [];
 
           for (const [filhoEst, custo] of GRAFO_PI[no.estado]) {
-            const novoG = no.g + (isAStar ? custo : 0);
-            const novoRealG = no.realG + custo;
+            const novoG = no.g + custo;
             const h = H_PI[filhoEst];
-            const f = novoG + h;
+            const f = isGulosa ? h : (novoG + h);
             activeEdges.push([no.estado, filhoEst]);
 
-            if (!(filhoEst in visitados) || novoG < visitados[filhoEst]) {
+            const deveInserir = isGulosa
+              ? !(filhoEst in visitados)
+              : (!(filhoEst in visitados) || novoG < visitados[filhoEst]);
+
+            if (deveInserir) {
               const isUpdate = filhoEst in visitados;
               visitados[filhoEst] = novoG;
-              const childNode = {
-                estado: filhoEst,
-                pai: no,
-                g: novoG,
-                h,
-                f,
-                realG: novoRealG,
-                seq: seq++
-              };
-              fronteira.push(childNode);
+              fronteira.push({ estado: filhoEst, pai: no, acao: `Ir para ${filhoEst}`, g: novoG, h, f, realG: novoG, seq: seq++ });
               sortHeap();
-              nodeStats[filhoEst] = { g: novoG, h, f, realG: novoRealG };
+              nodeStats[filhoEst] = { g: novoG, h, f, realG: novoG };
 
-              if (isAStar) {
-                evaluations.push({
-                  type: isUpdate ? 'updated' : 'added',
-                  html: `<strong>${isUpdate ? '↻ Caminho Melhor' : '+ Adicionado'}: ${DISPLAY_NAME[filhoEst]}</strong> (estrada: ${custo} km)<br>
-                         <code>g = ${no.g} + ${custo} = ${novoG}</code> · <code>h = ${h}</code> · <strong><code>f = ${f}</code></strong>${filhoEst === GOAL ? ' (Meta! h = 0)' : ''}`
-                });
-              } else {
-                evaluations.push({
-                  type: 'added',
-                  html: `<strong>+ Adicionado: ${DISPLAY_NAME[filhoEst]}</strong> (estrada: ${custo} km, acum. real: ${novoRealG} km)<br>
-                         Gulosa usa apenas <strong><code>h = ${h}</code></strong>${filhoEst === GOAL ? ' (Meta!)' : ''}`
-                });
-              }
+              evaluations.push({
+                type: isUpdate ? 'updated' : 'added',
+                html: !isGulosa
+                  ? `<strong>${isUpdate ? '↻ Caminho Melhor' : '+ Adicionado'}: ${DISPLAY_NAME[filhoEst]}</strong> (${custo} km)<br>
+                     <code>g = ${no.g} + ${custo} = ${novoG}</code> · <code>h = ${h}</code> · <strong><code>f = ${f}</code></strong>${filhoEst === GOAL_PI ? ' (Meta! h = 0)' : ''}`
+                  : `<strong>+ Adicionado: ${DISPLAY_NAME[filhoEst]}</strong> (${custo} km · acum. ${novoG} km)<br>
+                     Gulosa prioriza apenas <strong><code>h = ${h}</code></strong>${filhoEst === GOAL_PI ? ' (Meta!)' : ''}`
+              });
             } else {
               evaluations.push({
                 type: 'ignored',
-                html: `<strong>× Ignorado: ${DISPLAY_NAME[filhoEst]}</strong> (estrada: ${custo} km) — já existe caminho ${isAStar ? `com g = ${visitados[filhoEst]} ≤ ${novoG}` : 'registrado'}.`
+                html: `<strong>× Descartado: ${DISPLAY_NAME[filhoEst]}</strong> (${custo} km) — ${isGulosa ? 'já visitado' : `g=${novoG} não melhora melhor g salvo (${visitados[filhoEst]})`}.`
               });
             }
           }
 
           steps.push({
-            stepNum: passo,
-            current: no.estado,
-            expanded: Array.from(expandedSet),
-            frontier: makeFrontierSnapshot(fronteira),
-            nodeStats: cloneNodeInfo(nodeStats),
-            activeEdges,
-            finalPath: null,
-            nosExpandidos,
-            currentG: no.realG,
-            currentH: no.h,
-            title: `Passo ${passo} — Analisando ${DISPLAY_NAME[no.estado]}`,
-            text: isAStar
-              ? `Retirado da fronteira por ter o <strong>menor f(n) = ${no.f}</strong> (<code>g = ${no.g}</code> + <code>h = ${no.h}</code>). Avaliando estradas vizinhas:`
-              : `Retirado da fronteira por ter a <strong>menor heurística h(n) = ${no.h}</strong> (distância real até aqui: ${no.realG} km). Avaliando vizinhos:`,
+            current: no.estado, expanded: Array.from(expandedSet), frontier: snapFrontier(fronteira),
+            nodeStats: cloneObj(nodeStats), activeEdges, finalPath: null,
+            nosExpandidos, currentG: no.g, currentH: no.h,
+            title: `Passo ${passo} — Expandindo ${DISPLAY_NAME[no.estado]}`,
+            text: !isGulosa
+              ? `Retirado da fronteira com menor <strong>f(n) = ${no.f}</strong> (<code>g=${no.g}</code> + <code>h=${no.h}</code>). Avaliando estradas:`
+              : `Retirado da fronteira com menor <strong>h(n) = ${no.h}</strong> (distância real até aqui: ${no.g} km). Avaliando estradas:`,
             evaluations
           });
           passo++;
         }
       } else if (algo === 'BFS') {
-        const root = { estado: START, pai: null, g: 0, h: H_PI[START], f: 0, realG: 0 };
-        const fronteira = [root];
-        const visitados = new Set([START]);
+        const fronteira = [{ estado: START_PI, pai: null, acao: null, g: 0, h: H_PI[START_PI], f: 0, realG: 0 }];
+        const visitados = new Set([START_PI]);
 
         steps.push({
-          stepNum: 0,
-          current: null,
-          expanded: [],
-          frontier: makeFrontierSnapshot(fronteira),
-          nodeStats: cloneNodeInfo(nodeStats),
-          activeEdges: [],
-          finalPath: null,
-          nosExpandidos: 0,
-          currentG: 0,
-          currentH: H_PI[START],
+          current: null, expanded: [], frontier: snapFrontier(fronteira),
+          nodeStats: cloneObj(nodeStats), activeEdges: [], finalPath: null,
+          nosExpandidos: 0, currentG: 0, currentH: H_PI[START_PI],
           title: `Início — BFS (Busca em Largura)`,
-          text: `A BFS usa uma <strong>Fila (FIFO)</strong> e ignora distâncias e heurísticas. <strong>${DISPLAY_NAME[START]}</strong> entra na fila.`,
+          text: `A BFS usa <strong>Fila (FIFO)</strong> e ignora distâncias/heurísticas. <strong>${DISPLAY_NAME[START_PI]}</strong> entra na fila.`,
           evaluations: []
         });
 
@@ -1032,86 +1371,53 @@
           nosExpandidos++;
           expandedSet.add(no.estado);
 
-          if (no.estado === GOAL) {
-            const finalPath = reconstructPath(no);
-            const totalKm = computeRealCost(finalPath);
+          if (no.estado === GOAL_PI) {
+            const finalPath = reconstructNodes(no).map(p => p.estado);
             steps.push({
-              stepNum: passo,
-              current: no.estado,
-              expanded: Array.from(expandedSet),
-              frontier: makeFrontierSnapshot(fronteira),
-              nodeStats: cloneNodeInfo(nodeStats),
-              activeEdges: [],
-              finalPath,
-              nosExpandidos,
-              currentG: totalKm,
-              currentH: 0,
-              title: `Passo ${passo} — Destino Alcançado: ${DISPLAY_NAME[GOAL]}!`,
-              text: `BFS encontrou <strong>Parnaíba</strong> com o menor número de conexões (${finalPath.length - 1} estradas), totalizando <strong>${totalKm} km</strong> em ${nosExpandidos} nós expandidos.`,
-              evaluations: [{
-                type: 'goal',
-                html: `<strong>Rota Final (${totalKm} km):</strong> ${finalPath.map(c => DISPLAY_NAME[c]).join(' → ')}`
-              }]
+              current: no.estado, expanded: Array.from(expandedSet), frontier: snapFrontier(fronteira),
+              nodeStats: cloneObj(nodeStats), activeEdges: [], finalPath,
+              nosExpandidos, currentG: no.g, currentH: 0,
+              title: `Passo ${passo} — Objetivo Alcançado: ${DISPLAY_NAME[GOAL_PI]}!`,
+              text: `BFS encontrou <strong>Parnaíba</strong> com o menor número de conexões (${finalPath.length - 1} estradas), somando <strong>${no.g} km</strong> em ${nosExpandidos} nós expandidos.`,
+              evaluations: [{ type: 'goal', html: `<strong>Rota Final (${no.g} km):</strong> ${finalPath.map(c => DISPLAY_NAME[c]).join(' → ')}` }]
             });
-            return { steps, finalPath, totalKm, nosExpandidos };
+            return { steps, finalPath, totalCost: no.g, nosExpandidos };
           }
 
-          const evaluations = [];
-          const activeEdges = [];
+          const evaluations = [], activeEdges = [];
           for (const [filhoEst, custo] of GRAFO_PI[no.estado]) {
             activeEdges.push([no.estado, filhoEst]);
             if (!visitados.has(filhoEst)) {
               visitados.add(filhoEst);
-              const novoRealG = no.realG + custo;
-              fronteira.push({ estado: filhoEst, pai: no, g: novoRealG, h: H_PI[filhoEst], f: novoRealG, realG: novoRealG });
-              nodeStats[filhoEst] = { g: novoRealG, h: H_PI[filhoEst], f: novoRealG, realG: novoRealG };
-              evaluations.push({
-                type: 'added',
-                html: `<strong>+ Enfileirado: ${DISPLAY_NAME[filhoEst]}</strong> (entra no fim da fila · acum. ${novoRealG} km)`
-              });
+              const novoG = no.g + custo;
+              fronteira.push({ estado: filhoEst, pai: no, acao: `Ir para ${filhoEst}`, g: novoG, h: H_PI[filhoEst], f: novoG, realG: novoG });
+              nodeStats[filhoEst] = { g: novoG, h: H_PI[filhoEst], f: novoG, realG: novoG };
+              evaluations.push({ type: 'added', html: `<strong>+ Enfileirado: ${DISPLAY_NAME[filhoEst]}</strong> (fim da fila · acum. ${novoG} km)` });
             } else {
-              evaluations.push({
-                type: 'ignored',
-                html: `<strong>× Ignorado: ${DISPLAY_NAME[filhoEst]}</strong> — já visitado ou na fila.`
-              });
+              evaluations.push({ type: 'ignored', html: `<strong>× Ignorado: ${DISPLAY_NAME[filhoEst]}</strong> — já descoberto.` });
             }
           }
 
           steps.push({
-            stepNum: passo,
-            current: no.estado,
-            expanded: Array.from(expandedSet),
-            frontier: makeFrontierSnapshot(fronteira),
-            nodeStats: cloneNodeInfo(nodeStats),
-            activeEdges,
-            finalPath: null,
-            nosExpandidos,
-            currentG: no.realG,
-            currentH: H_PI[no.estado],
-            title: `Passo ${passo} — Analisando ${DISPLAY_NAME[no.estado]}`,
-            text: `Retirado do <strong>início da fila (FIFO)</strong>. Expandindo seus vizinhos ainda não descobertos:`,
+            current: no.estado, expanded: Array.from(expandedSet), frontier: snapFrontier(fronteira),
+            nodeStats: cloneObj(nodeStats), activeEdges, finalPath: null,
+            nosExpandidos, currentG: no.g, currentH: H_PI[no.estado],
+            title: `Passo ${passo} — Expandindo ${DISPLAY_NAME[no.estado]}`,
+            text: `Retirado do início da fila (FIFO). Enfileirando vizinhos ainda não visitados:`,
             evaluations
           });
           passo++;
         }
       } else if (algo === 'DFS') {
-        const root = { estado: START, pai: null, g: 0, h: H_PI[START], f: 0, realG: 0 };
-        const fronteira = [root];
+        const fronteira = [{ estado: START_PI, pai: null, acao: null, g: 0, h: H_PI[START_PI], f: 0, realG: 0 }];
         const visitados = new Set();
 
         steps.push({
-          stepNum: 0,
-          current: null,
-          expanded: [],
-          frontier: makeFrontierSnapshot([...fronteira].reverse()),
-          nodeStats: cloneNodeInfo(nodeStats),
-          activeEdges: [],
-          finalPath: null,
-          nosExpandidos: 0,
-          currentG: 0,
-          currentH: H_PI[START],
+          current: null, expanded: [], frontier: snapFrontier([...fronteira].reverse()),
+          nodeStats: cloneObj(nodeStats), activeEdges: [], finalPath: null,
+          nosExpandidos: 0, currentG: 0, currentH: H_PI[START_PI],
           title: `Início — DFS (Busca em Profundidade)`,
-          text: `A DFS usa uma <strong>Pilha (LIFO)</strong>: sempre avança pelo último vizinho empilhado. <strong>${DISPLAY_NAME[START]}</strong> entra na pilha.`,
+          text: `A DFS usa <strong>Pilha (LIFO)</strong>: sempre avança pelo último vizinho empilhado.`,
           evaluations: []
         });
 
@@ -1123,92 +1429,237 @@
           nosExpandidos++;
           expandedSet.add(no.estado);
 
-          if (no.estado === GOAL) {
-            const finalPath = reconstructPath(no);
-            const totalKm = computeRealCost(finalPath);
+          if (no.estado === GOAL_PI) {
+            const finalPath = reconstructNodes(no).map(p => p.estado);
             steps.push({
-              stepNum: passo,
-              current: no.estado,
-              expanded: Array.from(expandedSet),
-              frontier: makeFrontierSnapshot([...fronteira].reverse()),
-              nodeStats: cloneNodeInfo(nodeStats),
-              activeEdges: [],
-              finalPath,
-              nosExpandidos,
-              currentG: totalKm,
-              currentH: 0,
-              title: `Passo ${passo} — Destino Alcançado: ${DISPLAY_NAME[GOAL]}!`,
-              text: `DFS chegou em <strong>Parnaíba</strong> mergulhando pelo ramo do topo da pilha. Distância total: <strong>${totalKm} km</strong> em ${nosExpandidos} nós expandidos.`,
-              evaluations: [{
-                type: 'goal',
-                html: `<strong>Rota Final (${totalKm} km):</strong> ${finalPath.map(c => DISPLAY_NAME[c]).join(' → ')}`
-              }]
+              current: no.estado, expanded: Array.from(expandedSet), frontier: snapFrontier([...fronteira].reverse()),
+              nodeStats: cloneObj(nodeStats), activeEdges: [], finalPath,
+              nosExpandidos, currentG: no.g, currentH: 0,
+              title: `Passo ${passo} — Objetivo Alcançado: ${DISPLAY_NAME[GOAL_PI]}!`,
+              text: `DFS chegou em <strong>Parnaíba</strong> mergulhando pelo topo da pilha. Distância total: <strong>${no.g} km</strong> em ${nosExpandidos} nós expandidos.`,
+              evaluations: [{ type: 'goal', html: `<strong>Rota Final (${no.g} km):</strong> ${finalPath.map(c => DISPLAY_NAME[c]).join(' → ')}` }]
             });
-            return { steps, finalPath, totalKm, nosExpandidos };
+            return { steps, finalPath, totalCost: no.g, nosExpandidos };
           }
 
-          const evaluations = [];
-          const activeEdges = [];
+          const evaluations = [], activeEdges = [];
           for (const [filhoEst, custo] of GRAFO_PI[no.estado]) {
             activeEdges.push([no.estado, filhoEst]);
             if (!visitados.has(filhoEst)) {
-              const novoRealG = no.realG + custo;
-              fronteira.push({ estado: filhoEst, pai: no, g: novoRealG, h: H_PI[filhoEst], f: novoRealG, realG: novoRealG });
-              nodeStats[filhoEst] = { g: novoRealG, h: H_PI[filhoEst], f: novoRealG, realG: novoRealG };
-              evaluations.push({
-                type: 'added',
-                html: `<strong>+ Empilhado: ${DISPLAY_NAME[filhoEst]}</strong> (vai para o topo da pilha · acum. ${novoRealG} km)`
-              });
+              const novoG = no.g + custo;
+              fronteira.push({ estado: filhoEst, pai: no, acao: `Ir para ${filhoEst}`, g: novoG, h: H_PI[filhoEst], f: novoG, realG: novoG });
+              nodeStats[filhoEst] = { g: novoG, h: H_PI[filhoEst], f: novoG, realG: novoG };
+              evaluations.push({ type: 'added', html: `<strong>+ Empilhado: ${DISPLAY_NAME[filhoEst]}</strong> (topo da pilha · acum. ${novoG} km)` });
             } else {
-              evaluations.push({
-                type: 'ignored',
-                html: `<strong>× Ignorado: ${DISPLAY_NAME[filhoEst]}</strong> — já expandido.`
-              });
+              evaluations.push({ type: 'ignored', html: `<strong>× Ignorado: ${DISPLAY_NAME[filhoEst]}</strong> — já expandido.` });
             }
           }
 
           steps.push({
-            stepNum: passo,
-            current: no.estado,
-            expanded: Array.from(expandedSet),
-            frontier: makeFrontierSnapshot([...fronteira].reverse()),
-            nodeStats: cloneNodeInfo(nodeStats),
-            activeEdges,
-            finalPath: null,
-            nosExpandidos,
-            currentG: no.realG,
-            currentH: H_PI[no.estado],
-            title: `Passo ${passo} — Analisando ${DISPLAY_NAME[no.estado]}`,
-            text: `Retirado do <strong>topo da pilha (LIFO)</strong>. Empilhando vizinhos não visitados:`,
+            current: no.estado, expanded: Array.from(expandedSet), frontier: snapFrontier([...fronteira].reverse()),
+            nodeStats: cloneObj(nodeStats), activeEdges, finalPath: null,
+            nosExpandidos, currentG: no.g, currentH: H_PI[no.estado],
+            title: `Passo ${passo} — Expandindo ${DISPLAY_NAME[no.estado]}`,
+            text: `Retirado do topo da pilha (LIFO). Empilhando vizinhos não visitados:`,
             evaluations
           });
           passo++;
         }
       }
-
-      return { steps, finalPath: [], totalKm: 0, nosExpandidos };
+      return { steps, finalPath: [], totalCost: 0, nosExpandidos };
     }
 
-    // Pré-computa todos os 4 algoritmos para navegação instantânea e tabela comparativa
-    const ALL_ALGOS = ['A*', 'Gulosa', 'BFS', 'DFS'];
-    const TRACES = {};
-    ALL_ALGOS.forEach(a => { TRACES[a] = generateTrace(a); });
+    // --- Trace Domínio 2: 8-Puzzle ---
+    function generatePuzzleTrace(scenarioKey, algo) {
+      const startState = PUZZLE_SCENARIOS[scenarioKey];
+      const startKey = startState.join(',');
+      const isBFS = algo === 'BFS';
+      const isGulosa = algo === 'Gulosa_h2';
+      const useH1 = algo === 'A*_h1';
+      const hFn = useH1 ? h1PecasFora : h2Manhattan;
+      const hName = useH1 ? 'h1' : 'h2';
 
-    // Lista única de arestas não-direcionadas para desenho limpo
-    const UNIQUE_EDGES = [];
-    const seenEdge = new Set();
-    for (const [u, neighbors] of Object.entries(GRAFO_PI)) {
-      for (const [v, dist] of neighbors) {
-        const key = [u, v].sort().join('--');
-        if (!seenEdge.has(key)) {
-          seenEdge.add(key);
-          UNIQUE_EDGES.push({ u, v, dist, key });
+      const steps = [];
+      let nosExpandidos = 0;
+
+      const snapFrontier = (list) => {
+        const preview = list.slice(0, 8).map(n => ({
+          acao: n.acao || 'Início',
+          g: n.g, h: n.h, f: n.f
+        }));
+        return { preview, total: list.length };
+      };
+
+      const h0 = hFn(startState);
+
+      if (isBFS) {
+        const fronteira = [{ estado: startState, key: startKey, pai: null, acao: null, g: 0, h: h0, f: 0 }];
+        const visitados = new Set([startKey]);
+
+        steps.push({
+          board: startState, isGoal: false, children: [],
+          frontierInfo: snapFrontier(fronteira),
+          nosExpandidos: 0, currentG: 0, currentH: h0,
+          title: `Início — BFS no 8-Puzzle (${scenarioKey})`,
+          text: `A BFS explora todos os tabuleiros possíveis nível por nível sem usar heurística. Observe quantos nós ela precisa expandir em comparação ao A*!`,
+          evaluations: [], solutionActions: null
+        });
+
+        let passo = 1;
+        while (fronteira.length > 0) {
+          const no = fronteira.shift();
+          nosExpandidos++;
+
+          if (no.key === GOAL_KEY_8) {
+            const pathNodes = reconstructNodes(no);
+            const actions = pathNodes.slice(1).map(p => p.acao);
+            steps.push({
+              board: no.estado, isGoal: true, children: [],
+              frontierInfo: snapFrontier(fronteira),
+              nosExpandidos, currentG: no.g, currentH: 0,
+              title: `Passo ${passo} — Tabuleiro Resolvido!`,
+              text: `BFS encontrou a solução ótima em <strong>${no.g} movimentos</strong>, mas precisou expandir <strong>${nosExpandidos} nós</strong> porque não usa heurística.`,
+              evaluations: [{ type: 'goal', html: `<strong>Sequência (${no.g} mov.):</strong> ${actions.join(' → ')}` }],
+              solutionActions: actions
+            });
+            return { steps, actions, totalCost: no.g, nosExpandidos };
+          }
+
+          const children = [];
+          const evaluations = [];
+          for (const [acao, filhoEst, custo] of sucessores8(no.estado)) {
+            const fKey = filhoEst.join(',');
+            const novoG = no.g + custo;
+            const fh = h2Manhattan(filhoEst);
+            if (!visitados.has(fKey)) {
+              visitados.add(fKey);
+              fronteira.push({ estado: filhoEst, key: fKey, pai: no, acao, g: novoG, h: fh, f: novoG });
+              children.push({ acao, board: filhoEst, g: novoG, h: fh, f: novoG, status: fKey === GOAL_KEY_8 ? 'goal' : 'added' });
+              evaluations.push({ type: 'added', html: `<strong>+ '${acao}'</strong> → enfileirado no nível <code>g = ${novoG}</code>` });
+            } else {
+              children.push({ acao, board: filhoEst, g: novoG, h: fh, f: novoG, status: 'ignored' });
+              evaluations.push({ type: 'ignored', html: `<strong>× '${acao}'</strong> — estado já visitado.` });
+            }
+          }
+
+          steps.push({
+            board: no.estado, isGoal: false, children,
+            frontierInfo: snapFrontier(fronteira),
+            nosExpandidos, currentG: no.g, currentH: no.h,
+            title: `Passo ${passo} — Expandindo nível g=${no.g} (${no.acao || 'Início'})`,
+            text: `Retirado do início da fila (FIFO). Gerando movimentos válidos da peça vazia (0):`,
+            evaluations, solutionActions: null
+          });
+          passo++;
+        }
+      } else {
+        let seq = 0;
+        const root = { estado: startState, key: startKey, pai: null, acao: null, g: 0, h: h0, f: h0, seq: seq++ };
+        const fronteira = [root];
+        const visitados = { [startKey]: 0 };
+        const sortHeap = () => fronteira.sort((a, b) => (a.f !== b.f ? a.f - b.f : a.seq - b.seq));
+
+        steps.push({
+          board: startState, isGoal: false, children: [],
+          frontierInfo: snapFrontier(fronteira),
+          nosExpandidos: 0, currentG: 0, currentH: h0,
+          title: `Início — ${PUZZLE_META[algo].label} (${scenarioKey})`,
+          text: `Tabuleiro inicial com <code>${hName} = ${h0}</code>. Clique em <strong>Próximo</strong> para ver como a heurística guia a escolha do melhor movimento.`,
+          evaluations: [], solutionActions: null
+        });
+
+        let passo = 1;
+        while (fronteira.length > 0) {
+          sortHeap();
+          const no = fronteira.shift();
+          nosExpandidos++;
+
+          if (no.key === GOAL_KEY_8) {
+            const pathNodes = reconstructNodes(no);
+            const actions = pathNodes.slice(1).map(p => p.acao);
+            steps.push({
+              board: no.estado, isGoal: true, children: [],
+              frontierInfo: snapFrontier(fronteira),
+              nosExpandidos, currentG: no.g, currentH: 0,
+              title: `Passo ${passo} — Tabuleiro Resolvido!`,
+              text: !isGulosa
+                ? `Objetivo atingido! <code>f = ${no.g} + 0 = ${no.f}</code>. O <strong>${PUZZLE_META[algo].label}</strong> resolveu em <strong>${no.g} movimentos</strong> expandindo apenas <strong>${nosExpandidos} nós</strong>!`
+                : `Objetivo atingido! A <strong>Busca Gulosa</strong> resolveu em <strong>${no.g} movimentos</strong> expandindo <strong>${nosExpandidos} nós</strong>.`,
+              evaluations: [{ type: 'goal', html: `<strong>Sequência (${no.g} mov.):</strong> ${actions.join(' → ')}` }],
+              solutionActions: actions
+            });
+            return { steps, actions, totalCost: no.g, nosExpandidos };
+          }
+
+          const children = [];
+          const evaluations = [];
+          let bestF = Infinity;
+
+          for (const [acao, filhoEst, custo] of sucessores8(no.estado)) {
+            const fKey = filhoEst.join(',');
+            const novoG = no.g + custo;
+            const h = hFn(filhoEst);
+            const f = isGulosa ? h : (novoG + h);
+
+            const deveInserir = isGulosa
+              ? !(fKey in visitados)
+              : (!(fKey in visitados) || novoG < visitados[fKey]);
+
+            if (deveInserir) {
+              visitados[fKey] = novoG;
+              fronteira.push({ estado: filhoEst, key: fKey, pai: no, acao, g: novoG, h, f, seq: seq++ });
+              if (f < bestF) bestF = f;
+              children.push({ acao, board: filhoEst, g: novoG, h, f, status: fKey === GOAL_KEY_8 ? 'goal' : 'added' });
+              evaluations.push({
+                type: fKey === GOAL_KEY_8 ? 'goal' : 'added',
+                html: !isGulosa
+                  ? `<strong>+ Ação '${acao}'</strong> → <code>g = ${no.g} + 1 = ${novoG}</code> · <code>${hName} = ${h}</code> · <strong><code>f = ${f}</code></strong>${fKey === GOAL_KEY_8 ? ' (Meta!)' : ''}`
+                  : `<strong>+ Ação '${acao}'</strong> (mov. ${novoG}) → Gulosa avalia <strong><code>h2 = ${h}</code></strong>${fKey === GOAL_KEY_8 ? ' (Meta!)' : ''}`
+              });
+            } else {
+              children.push({ acao, board: filhoEst, g: novoG, h, f, status: 'ignored' });
+              evaluations.push({
+                type: 'ignored',
+                html: `<strong>× '${acao}'</strong> — estado já visitado com caminho melhor ou igual.`
+              });
+            }
+          }
+
+          // Destaca visualmente o melhor filho gerado
+          children.forEach(ch => {
+            if (ch.status === 'added' && ch.f === bestF) ch.status = 'best';
+          });
+
+          sortHeap();
+          steps.push({
+            board: no.estado, isGoal: false, children,
+            frontierInfo: snapFrontier(fronteira),
+            nosExpandidos, currentG: no.g, currentH: no.h,
+            title: `Passo ${passo} — Expandindo (${no.acao ? `após '${no.acao}'` : 'Estado Inicial'})`,
+            text: !isGulosa
+              ? `Escolhido da fronteira por ter o menor <strong>f(n) = ${no.f}</strong> (<code>g=${no.g}</code> + <code>${hName}=${no.h}</code>). Avaliando movimentos:`
+              : `Escolhido da fronteira por ter a menor <strong>h2(n) = ${no.h}</strong> (movimentos até aqui: ${no.g}). Avaliando movimentos:`,
+            evaluations, solutionActions: null
+          });
+          passo++;
         }
       }
+
+      return { steps, actions: [], totalCost: 0, nosExpandidos };
+    }
+
+    // Pré-computação
+    const PIAUI_TRACES = {};
+    PIAUI_ALGOS.forEach(a => { PIAUI_TRACES[a] = generatePiauiTrace(a); });
+
+    const PUZZLE_TRACES = {};
+    for (const sc of Object.keys(PUZZLE_SCENARIOS)) {
+      PUZZLE_TRACES[sc] = {};
+      PUZZLE_ALGOS.forEach(a => { PUZZLE_TRACES[sc][a] = generatePuzzleTrace(sc, a); });
     }
 
     // =========================================================================
-    // 3. RENDERIZAÇÃO DO GRAFO SVG
+    // 4. RENDERIZAÇÃO DO GRAFO (DOMÍNIO 1) E DO TABULEIRO (DOMÍNIO 2)
     // =========================================================================
     const svg = document.getElementById('graphSvg');
 
@@ -1226,49 +1677,32 @@
       return false;
     }
 
-    function isEdgeActive(u, v, activeEdges) {
-      return activeEdges.some(([a, b]) => (a === u && b === v) || (a === v && b === u));
-    }
-
-    function renderGraph(algo, step) {
+    function renderPiauiGraph(algo, step) {
       svg.innerHTML = '';
 
-      // Indicador discreto de bússola (Norte / Sul)
       const compass = createSvgEl('g', { opacity: '0.45' });
-      compass.appendChild(createSvgEl('text', {
-        x: 685, y: 42, fill: '#94a3b8', 'font-size': '11', 'font-weight': '700', 'text-anchor': 'middle'
-      })).textContent = 'N (Litoral)';
+      compass.appendChild(createSvgEl('text', { x: 685, y: 42, fill: '#94a3b8', 'font-size': '11', 'font-weight': '700', 'text-anchor': 'middle' })).textContent = 'N (Litoral)';
       compass.appendChild(createSvgEl('line', { x1: 685, y1: 50, x2: 685, y2: 80, stroke: '#64748b', 'stroke-width': '1.5' }));
       compass.appendChild(createSvgEl('polygon', { points: '685,46 680,55 690,55', fill: '#38bdf8' }));
-      compass.appendChild(createSvgEl('text', {
-        x: 685, y: 95, fill: '#94a3b8', 'font-size': '11', 'text-anchor': 'middle'
-      })).textContent = 'S (Sul)';
+      compass.appendChild(createSvgEl('text', { x: 685, y: 95, fill: '#94a3b8', 'font-size': '11', 'font-weight': '700', 'text-anchor': 'middle' })).textContent = 'S (Sul)';
       svg.appendChild(compass);
 
       const frontierNames = new Set(step.frontier.map(f => f.estado));
       const expandedNames = new Set(step.expanded);
       const finalSet = new Set(step.finalPath || []);
 
-      // 1) Arestas
       for (const edge of UNIQUE_EDGES) {
-        const p1 = POS[edge.u];
-        const p2 = POS[edge.v];
+        const p1 = POS[edge.u], p2 = POS[edge.v];
         const inFinal = isEdgeInPath(edge.u, edge.v, step.finalPath);
-        const active = isEdgeActive(edge.u, edge.v, step.activeEdges);
+        const active = step.activeEdges.some(([a, b]) => (a === edge.u && b === edge.v) || (a === edge.v && b === edge.u));
 
-        let stroke = '#334155';
-        let width = '2.5';
+        let stroke = '#334155', width = '2.5';
         if (inFinal) { stroke = '#10b981'; width = '5.5'; }
         else if (active) { stroke = '#38bdf8'; width = '4'; }
 
-        svg.appendChild(createSvgEl('line', {
-          x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y,
-          stroke, 'stroke-width': width, 'stroke-linecap': 'round'
-        }));
+        svg.appendChild(createSvgEl('line', { x1: p1.x, y1: p1.y, x2: p2.x, y2: p2.y, stroke, 'stroke-width': width, 'stroke-linecap': 'round' }));
 
-        // Rótulo de distância (km) no meio da aresta
-        const mx = (p1.x + p2.x) / 2;
-        const my = (p1.y + p2.y) / 2;
+        const mx = (p1.x + p2.x) / 2, my = (p1.y + p2.y) / 2;
         const gLabel = createSvgEl('g');
         gLabel.appendChild(createSvgEl('rect', {
           x: mx - 23, y: my - 10, width: 46, height: 20, rx: 6,
@@ -1276,120 +1710,145 @@
           stroke: inFinal ? '#10b981' : (active ? '#38bdf8' : '#334155'),
           'stroke-width': '1.2'
         }));
-        const txt = createSvgEl('text', {
+        gLabel.appendChild(createSvgEl('text', {
           x: mx, y: my + 4,
           fill: inFinal ? '#6ee7b7' : (active ? '#e0f2fe' : '#cbd5e1'),
           'font-size': '11', 'font-weight': '700', 'text-anchor': 'middle'
-        });
-        txt.textContent = `${edge.dist} km`;
-        gLabel.appendChild(txt);
+        })).textContent = `${edge.dist} km`;
         svg.appendChild(gLabel);
       }
 
-      // 2) Nós (Cidades)
       for (const [city, pos] of Object.entries(POS)) {
         const isCurrent = step.current === city;
         const isFinal = finalSet.has(city);
         const isFrontier = frontierNames.has(city);
         const isExpanded = expandedNames.has(city);
 
-        let fill = '#1e293b';
-        let stroke = '#64748b';
-        let strokeW = '2.5';
-
-        if (isFinal) {
-          fill = '#059669'; stroke = '#34d399'; strokeW = '3.5';
-        } else if (isCurrent) {
-          fill = '#0284c7'; stroke = '#38bdf8'; strokeW = '3.5';
-        } else if (isFrontier) {
-          fill = '#78350f'; stroke = '#f59e0b'; strokeW = '3';
-        } else if (isExpanded) {
-          fill = '#334155'; stroke = '#94a3b8'; strokeW = '2.5';
-        }
+        let fill = '#1e293b', stroke = '#64748b', strokeW = '2.5';
+        if (isFinal) { fill = '#059669'; stroke = '#34d399'; strokeW = '3.5'; }
+        else if (isCurrent) { fill = '#0284c7'; stroke = '#38bdf8'; strokeW = '3.5'; }
+        else if (isFrontier) { fill = '#78350f'; stroke = '#f59e0b'; strokeW = '3'; }
+        else if (isExpanded) { fill = '#334155'; stroke = '#94a3b8'; strokeW = '2.5'; }
 
         const gNode = createSvgEl('g');
-
         if (isCurrent) {
           gNode.appendChild(createSvgEl('circle', {
-            cx: pos.x, cy: pos.y, r: 26,
-            fill: 'none', stroke: isFinal ? '#34d399' : '#38bdf8',
-            'stroke-width': '2.5', class: 'pulse-ring'
+            cx: pos.x, cy: pos.y, r: 26, fill: 'none',
+            stroke: isFinal ? '#34d399' : '#38bdf8', 'stroke-width': '2.5', class: 'pulse-ring'
           }));
         }
+        gNode.appendChild(createSvgEl('circle', { cx: pos.x, cy: pos.y, r: 21, fill, stroke, 'stroke-width': strokeW }));
 
-        gNode.appendChild(createSvgEl('circle', {
-          cx: pos.x, cy: pos.y, r: 21,
-          fill, stroke, 'stroke-width': strokeW
-        }));
-
-        // Badge interno: mostra h(n) ou f(n) no A*
         const stat = step.nodeStats[city];
-        const innerText = createSvgEl('text', {
-          x: pos.x, y: pos.y + 4,
-          fill: '#f8fafc', 'font-size': '11', 'font-weight': '800', 'text-anchor': 'middle'
-        });
-        if (algo === 'A*' && stat) {
-          innerText.textContent = `f:${stat.f}`;
-        } else if (algo === 'Gulosa') {
-          innerText.textContent = `h:${H_PI[city]}`;
-        } else if (stat) {
-          innerText.textContent = `${stat.realG}`;
-        } else {
-          innerText.textContent = `h:${H_PI[city]}`;
-        }
-        gNode.appendChild(innerText);
+        const inner = createSvgEl('text', { x: pos.x, y: pos.y + 4, fill: '#f8fafc', 'font-size': '11', 'font-weight': '800', 'text-anchor': 'middle' });
+        if (algo === 'A*' && stat) inner.textContent = `f:${stat.f}`;
+        else if (algo === 'Gulosa') inner.textContent = `h:${H_PI[city]}`;
+        else if (stat) inner.textContent = `${stat.realG}`;
+        else inner.textContent = `h:${H_PI[city]}`;
+        gNode.appendChild(inner);
 
-        // Nome da cidade + subtítulo (Origem/Destino + h/g)
         let lx = pos.x, ly = pos.y, anchor = 'middle';
         if (pos.labelPos === 'right') { lx = pos.x + 28; ly = pos.y - 2; anchor = 'start'; }
         else if (pos.labelPos === 'left') { lx = pos.x - 28; ly = pos.y - 2; anchor = 'end'; }
         else if (pos.labelPos === 'bottom') { lx = pos.x; ly = pos.y + 36; anchor = 'middle'; }
 
-        const nameEl = createSvgEl('text', {
-          x: lx, y: ly, fill: '#f8fafc',
-          'font-size': '13', 'font-weight': '700', 'text-anchor': anchor
-        });
-        const suffix = city === START ? ' (Início)' : (city === GOAL ? ' (Meta)' : '');
-        nameEl.textContent = DISPLAY_NAME[city] + suffix;
-        gNode.appendChild(nameEl);
+        const suffix = city === START_PI ? ' (Início)' : (city === GOAL_PI ? ' (Meta)' : '');
+        gNode.appendChild(createSvgEl('text', { x: lx, y: ly, fill: '#f8fafc', 'font-size': '13', 'font-weight': '700', 'text-anchor': anchor }))
+          .textContent = DISPLAY_NAME[city] + suffix;
 
-        const subEl = createSvgEl('text', {
-          x: lx, y: ly + 15, fill: '#94a3b8',
-          'font-size': '11', 'font-weight': '600', 'text-anchor': anchor
-        });
-        if (algo === 'A*' && stat) {
-          subEl.textContent = `g=${stat.g} · h=${H_PI[city]}`;
-        } else if (stat) {
-          subEl.textContent = `dist=${stat.realG}km · h=${H_PI[city]}`;
-        } else {
-          subEl.textContent = `h=${H_PI[city]} km`;
-        }
-        gNode.appendChild(subEl);
+        const sub = createSvgEl('text', { x: lx, y: ly + 15, fill: '#94a3b8', 'font-size': '11', 'font-weight': '600', 'text-anchor': anchor });
+        if (algo === 'A*' && stat) sub.textContent = `g=${stat.g} · h=${H_PI[city]}`;
+        else if (stat) sub.textContent = `dist=${stat.realG}km · h=${H_PI[city]}`;
+        else sub.textContent = `h=${H_PI[city]} km`;
+        gNode.appendChild(sub);
 
         svg.appendChild(gNode);
       }
     }
 
+    function renderBoardTiles(container, state, showDistBadge = false) {
+      container.innerHTML = '';
+      state.forEach((val, idx) => {
+        const tile = document.createElement('div');
+        if (val === 0) {
+          tile.className = 'tile empty';
+          tile.textContent = '';
+        } else {
+          const d = tileManhattan(val, idx);
+          tile.className = 'tile ' + (d === 0 ? 'correct' : 'misplaced');
+          tile.textContent = val;
+          if (showDistBadge) {
+            const b = document.createElement('span');
+            b.className = 'dist-badge';
+            b.textContent = d === 0 ? '✓' : `d=${d}`;
+            tile.appendChild(b);
+          }
+        }
+        container.appendChild(tile);
+      });
+    }
+
+    function renderPuzzleStage(algo, step) {
+      const mainGrid = document.getElementById('puzzleMainGrid');
+      const goalGrid = document.getElementById('puzzleGoalGrid');
+      const heurSummary = document.getElementById('puzzleHeurSummary');
+      const childrenCards = document.getElementById('childrenCards');
+      const caption = document.getElementById('puzzleBoardCaption');
+
+      mainGrid.classList.toggle('goal-reached', step.isGoal);
+      caption.textContent = step.isGoal ? '✓ Estado Objetivo Alcançado!' : 'Tabuleiro Atual em Análise';
+      renderBoardTiles(mainGrid, step.board, true);
+      renderBoardTiles(goalGrid, OBJETIVO_8, false);
+
+      const h1 = h1PecasFora(step.board);
+      const h2 = h2Manhattan(step.board);
+      heurSummary.innerHTML = `
+        <span class="heur-pill">Peças fora do lugar (<strong>h1</strong>): <strong>${h1}</strong></span>
+        <span class="heur-pill">Distância de Manhattan (<strong>h2</strong>): <strong>${h2}</strong></span>
+        <span class="heur-pill">Movimentos já feitos (<strong>g</strong>): <strong>${step.currentG}</strong></span>
+      `;
+
+      childrenCards.innerHTML = '';
+      if (step.children.length === 0) {
+        const msg = document.createElement('div');
+        msg.style.fontSize = '0.82rem';
+        msg.style.color = '#94a3b8';
+        msg.textContent = step.isGoal
+          ? `Solução concluída em ${step.currentG} movimentos: ${step.solutionActions.join(' → ')}`
+          : 'Avance para o Passo 1 para visualizar os movimentos candidatos.';
+        childrenCards.appendChild(msg);
+      } else {
+        step.children.forEach(ch => {
+          const card = document.createElement('div');
+          card.className = `child-card ${ch.status}`;
+          const act = document.createElement('div');
+          act.className = 'child-action';
+          act.textContent = ch.acao + (ch.status === 'goal' ? ' ★' : '');
+          const mini = document.createElement('div');
+          mini.className = 'puzzle-grid tiny';
+          renderBoardTiles(mini, ch.board, false);
+          const meta = document.createElement('div');
+          meta.className = 'child-meta';
+          if (algo === 'BFS') meta.textContent = `g=${ch.g}`;
+          else if (algo === 'Gulosa_h2') meta.textContent = `h2=${ch.h}`;
+          else meta.textContent = `f=${ch.f} (g=${ch.g}+h=${ch.h})`;
+
+          card.appendChild(act);
+          card.appendChild(mini);
+          card.appendChild(meta);
+          childrenCards.appendChild(card);
+        });
+      }
+    }
+
     // =========================================================================
-    // 4. ESTADO DA INTERFACE E CONTROLES
+    // 5. ESTADO GLOBAL E ATUALIZAÇÃO DA INTERFACE
     // =========================================================================
+    let currentDomain = 'piaui'; // 'piaui' | 'puzzle'
     let currentAlgo = 'A*';
+    let currentScenario = 'd=5';
     let currentIdx = 0;
     let playTimer = null;
-
-    const elStepCounter = document.getElementById('stepCounter');
-    const elAlgoBadge = document.getElementById('algoBadge');
-    const elFormulaMath = document.getElementById('formulaMath');
-    const elFormulaDesc = document.getElementById('formulaDesc');
-    const elMetricExpanded = document.getElementById('metricExpanded');
-    const elMetricCurrentG = document.getElementById('metricCurrentG');
-    const elMetricCurrentH = document.getElementById('metricCurrentH');
-    const elExpTitle = document.getElementById('expTitle');
-    const elExpText = document.getElementById('expText');
-    const elEvalList = document.getElementById('evalList');
-    const elFrontierTitle = document.getElementById('frontierTitle');
-    const elFrontierSub = document.getElementById('frontierSubtitle');
-    const elFrontierChips = document.getElementById('frontierChips');
 
     const btnReset = document.getElementById('btnReset');
     const btnPrev = document.getElementById('btnPrev');
@@ -1398,20 +1857,20 @@
     const btnEnd = document.getElementById('btnEnd');
     const speedSelect = document.getElementById('speedSelect');
 
+    function getActiveTrace() {
+      return currentDomain === 'piaui'
+        ? PIAUI_TRACES[currentAlgo]
+        : PUZZLE_TRACES[currentScenario][currentAlgo];
+    }
+
     function stopPlay() {
-      if (playTimer) {
-        clearInterval(playTimer);
-        playTimer = null;
-      }
+      if (playTimer) { clearInterval(playTimer); playTimer = null; }
       btnPlay.textContent = '▶ Reproduzir';
     }
 
     function togglePlay() {
-      const steps = TRACES[currentAlgo].steps;
-      if (playTimer) {
-        stopPlay();
-        return;
-      }
+      const steps = getActiveTrace().steps;
+      if (playTimer) { stopPlay(); return; }
       if (currentIdx >= steps.length - 1) currentIdx = 0;
       renderAll();
       btnPlay.textContent = '⏸ Pausar';
@@ -1425,117 +1884,236 @@
       }, Number(speedSelect.value));
     }
 
-    function renderComparisonTable() {
-      const tbody = document.getElementById('compareBody');
-      tbody.innerHTML = '';
-      ALL_ALGOS.forEach(algo => {
-        const meta = ALGO_META[algo];
-        const res = TRACES[algo];
-        const tr = document.createElement('tr');
-        if (algo === currentAlgo) tr.className = 'active-row';
-        tr.style.cursor = 'pointer';
-        tr.title = `Clique para simular ${meta.title}`;
-        tr.addEventListener('click', () => selectAlgo(algo));
+    function renderAlgoTabs() {
+      const container = document.getElementById('algoTabs');
+      container.innerHTML = '';
+      const list = currentDomain === 'piaui' ? PIAUI_ALGOS : PUZZLE_ALGOS;
+      const metaMap = currentDomain === 'piaui' ? PIAUI_META : PUZZLE_META;
 
-        tr.innerHTML = `
-          <td><strong>${meta.title}</strong></td>
-          <td>${meta.structure}</td>
-          <td>${meta.usesH}</td>
-          <td><strong>${res.nosExpandidos}</strong></td>
-          <td><strong>${res.totalKm} km</strong></td>
-          <td><span class="pill ${meta.optimalClass}">${meta.optimalText}</span></td>
-          <td style="font-size:0.78rem;color:#cbd5e1">${res.finalPath.map(c => DISPLAY_NAME[c]).join(' → ')}</td>
-        `;
-        tbody.appendChild(tr);
+      list.forEach(algo => {
+        const meta = metaMap[algo];
+        const btn = document.createElement('button');
+        btn.className = 'algo-btn' + (algo === currentAlgo ? ' active' : '');
+        btn.innerHTML = `<span>${meta.label}</span><small>${meta.sub}</small>`;
+        btn.addEventListener('click', () => {
+          stopPlay();
+          currentAlgo = algo;
+          currentIdx = 0;
+          renderAll();
+        });
+        container.appendChild(btn);
       });
     }
 
+    function renderLegend() {
+      const bar = document.getElementById('legendBar');
+      if (currentDomain === 'piaui') {
+        bar.innerHTML = `
+          <div class="legend-item"><span class="dot" style="background:#334155;border:2px solid #64748b"></span> Não visitado</div>
+          <div class="legend-item"><span class="dot" style="background:#f59e0b"></span> Na Fronteira</div>
+          <div class="legend-item"><span class="dot" style="background:#38bdf8"></span> Analisando Agora</div>
+          <div class="legend-item"><span class="dot" style="background:#64748b"></span> Já Expandido</div>
+          <div class="legend-item"><span class="dot" style="background:#10b981"></span> Rota Final</div>
+        `;
+      } else {
+        bar.innerHTML = `
+          <div class="legend-item"><span class="dot" style="background:#10b981"></span> Peça na posição correta (d=0)</div>
+          <div class="legend-item"><span class="dot" style="background:#f59e0b"></span> Peça fora do lugar (d=distância Manhattan)</div>
+          <div class="legend-item"><span class="dot" style="background:#38bdf8"></span> Melhor próximo movimento</div>
+        `;
+      }
+    }
+
+    function renderComparisonTable() {
+      const tbody = document.getElementById('compareBody');
+      tbody.innerHTML = '';
+
+      if (currentDomain === 'piaui') {
+        document.getElementById('compareTitle').textContent = 'Comparação Geral — Domínio 1 (São Raimundo Nonato → Parnaíba)';
+        document.getElementById('compareCostHeader').textContent = 'Distância Real';
+        document.getElementById('comparePathHeader').textContent = 'Rota Encontrada';
+
+        PIAUI_ALGOS.forEach(algo => {
+          const meta = PIAUI_META[algo];
+          const res = PIAUI_TRACES[algo];
+          const tr = document.createElement('tr');
+          if (algo === currentAlgo) tr.className = 'active-row';
+          tr.style.cursor = 'pointer';
+          tr.addEventListener('click', () => { stopPlay(); currentAlgo = algo; currentIdx = 0; renderAll(); });
+          tr.innerHTML = `
+            <td><strong>${meta.label}</strong></td>
+            <td>${meta.structure}</td>
+            <td>${meta.heur}</td>
+            <td><strong>${res.nosExpandidos}</strong></td>
+            <td><strong>${res.totalCost} km</strong></td>
+            <td><span class="pill ${meta.optimalClass}">${meta.optimalText}</span></td>
+            <td style="font-size:0.78rem;color:#cbd5e1">${res.finalPath.map(c => DISPLAY_NAME[c]).join(' → ')}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } else {
+        document.getElementById('compareTitle').textContent = `Comparação Geral — Domínio 2: 8-Puzzle (Cenário ${currentScenario})`;
+        document.getElementById('compareCostHeader').textContent = 'Movimentos';
+        document.getElementById('comparePathHeader').textContent = 'Sequência de Ações';
+
+        PUZZLE_ALGOS.forEach(algo => {
+          const meta = PUZZLE_META[algo];
+          const res = PUZZLE_TRACES[currentScenario][algo];
+          const tr = document.createElement('tr');
+          if (algo === currentAlgo) tr.className = 'active-row';
+          tr.style.cursor = 'pointer';
+          tr.addEventListener('click', () => { stopPlay(); currentAlgo = algo; currentIdx = 0; renderAll(); });
+          tr.innerHTML = `
+            <td><strong>${meta.label}</strong></td>
+            <td>${meta.structure}</td>
+            <td>${meta.heur}</td>
+            <td><strong>${res.nosExpandidos}</strong></td>
+            <td><strong>${res.totalCost} mov.</strong></td>
+            <td><span class="pill ${meta.optimalClass}">${meta.optimalText}</span></td>
+            <td style="font-size:0.78rem;color:#cbd5e1">${res.actions.join(' → ')}</td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+    }
+
     function renderAll() {
-      const trace = TRACES[currentAlgo];
+      const trace = getActiveTrace();
       const step = trace.steps[currentIdx];
-      const meta = ALGO_META[currentAlgo];
+      const meta = currentDomain === 'piaui' ? PIAUI_META[currentAlgo] : PUZZLE_META[currentAlgo];
 
-      // Graph
-      renderGraph(currentAlgo, step);
+      // Domain UI toggles
+      document.querySelectorAll('.domain-btn').forEach(b => b.classList.toggle('active', b.dataset.domain === currentDomain));
+      document.getElementById('scenarioBar').classList.toggle('visible', currentDomain === 'puzzle');
+      document.querySelectorAll('.scenario-btn').forEach(b => b.classList.toggle('active', b.dataset.scenario === currentScenario));
 
-      // Header & Badges
-      elStepCounter.textContent = `Passo ${currentIdx} / ${trace.steps.length - 1}`;
-      elAlgoBadge.textContent = meta.title;
-      elFormulaMath.textContent = meta.formula;
-      elFormulaDesc.textContent = meta.desc;
+      if (currentDomain === 'piaui') {
+        document.getElementById('domainTag').textContent = 'Domínio 1 · Piauí';
+        document.getElementById('domainSubtitle').innerHTML = 'Origem: <strong>São Raimundo Nonato</strong> &rarr; Destino: <strong>Parnaíba</strong> (baseado em <code>busca.py</code>)';
+        document.getElementById('stageTitle').textContent = 'Mapa de Estados — Piauí (Norte ↑ / Sul ↓)';
+        document.getElementById('graphSvg').style.display = 'block';
+        document.getElementById('puzzleStage').style.display = 'none';
+        document.getElementById('metricGLbl').textContent = 'Custo Real g(n)';
+        document.getElementById('metricHLbl').textContent = 'Heurística h(n)';
+        renderPiauiGraph(currentAlgo, step);
+      } else {
+        document.getElementById('domainTag').textContent = `Domínio 2 · 8-Puzzle (${currentScenario})`;
+        document.getElementById('domainSubtitle').innerHTML = 'Comparação <strong>A* (h1 vs h2)</strong>, <strong>Gulosa</strong> e <strong>BFS</strong> no Jogo dos 8 Números (<code>busca.py</code>)';
+        document.getElementById('stageTitle').textContent = `Tabuleiro 8-Puzzle — Cenário ${currentScenario}`;
+        document.getElementById('graphSvg').style.display = 'none';
+        document.getElementById('puzzleStage').style.display = 'flex';
+        document.getElementById('metricGLbl').textContent = 'Movimentos g(n)';
+        document.getElementById('metricHLbl').textContent = currentAlgo === 'A*_h1' ? 'Heurística h1(n)' : 'Heurística h2(n)';
+        renderPuzzleStage(currentAlgo, step);
+      }
 
-      // Metrics
-      elMetricExpanded.textContent = step.nosExpandidos;
-      elMetricCurrentG.textContent = `${step.currentG} km`;
-      elMetricCurrentH.textContent = `${step.currentH} km`;
+      renderAlgoTabs();
+      renderLegend();
 
-      // Didactic explanation
-      elExpTitle.textContent = step.title;
-      elExpText.innerHTML = step.text;
-      elEvalList.innerHTML = '';
+      // Step counter & didactic panel
+      document.getElementById('stepCounter').textContent = `Passo ${currentIdx} / ${trace.steps.length - 1}`;
+      document.getElementById('algoBadge').textContent = meta.label;
+      document.getElementById('formulaMath').textContent = meta.formula;
+      document.getElementById('formulaDesc').textContent = meta.desc;
+
+      document.getElementById('metricExpanded').textContent = step.nosExpandidos;
+      document.getElementById('metricCurrentG').textContent = currentDomain === 'piaui' ? `${step.currentG} km` : `${step.currentG}`;
+      document.getElementById('metricCurrentH').textContent = currentDomain === 'piaui' ? `${step.currentH} km` : `${step.currentH}`;
+
+      document.getElementById('expTitle').textContent = step.title;
+      document.getElementById('expText').innerHTML = step.text;
+
+      const evalList = document.getElementById('evalList');
+      evalList.innerHTML = '';
       step.evaluations.forEach(ev => {
         const div = document.createElement('div');
         div.className = `eval-item ${ev.type}`;
         div.innerHTML = ev.html;
-        elEvalList.appendChild(div);
+        evalList.appendChild(div);
       });
 
-      // Frontier
-      elFrontierTitle.textContent = meta.frontierTitle;
-      elFrontierSub.textContent = meta.frontierSub;
-      elFrontierChips.innerHTML = '';
-      if (step.frontier.length === 0) {
-        const empty = document.createElement('span');
-        empty.className = 'chip empty';
-        empty.textContent = 'Fronteira vazia (busca encerrada)';
-        elFrontierChips.appendChild(empty);
+      // Frontier chips
+      document.getElementById('frontierTitle').textContent = meta.frontierTitle;
+      document.getElementById('frontierSubtitle').textContent = meta.frontierSub;
+      const chips = document.getElementById('frontierChips');
+      chips.innerHTML = '';
+
+      if (currentDomain === 'piaui') {
+        if (step.frontier.length === 0) {
+          chips.innerHTML = '<span class="chip empty">Fronteira vazia (busca encerrada)</span>';
+        } else {
+          step.frontier.forEach((item, idx) => {
+            const span = document.createElement('span');
+            span.className = 'chip' + (idx === 0 ? ' next' : '');
+            const detail = currentAlgo === 'A*'
+              ? ` (f=${item.f} | g=${item.g}+h=${item.h})`
+              : (currentAlgo === 'Gulosa' ? ` (h=${item.h})` : ` (${item.realG} km)`);
+            span.textContent = `${idx === 0 ? '→ ' : ''}${DISPLAY_NAME[item.estado]}${detail}`;
+            chips.appendChild(span);
+          });
+        }
       } else {
-        step.frontier.forEach((item, idx) => {
-          const span = document.createElement('span');
-          span.className = 'chip' + (idx === 0 ? ' next' : '');
-          let detail = '';
-          if (currentAlgo === 'A*') detail = ` (f=${item.f} | g=${item.g} + h=${item.h})`;
-          else if (currentAlgo === 'Gulosa') detail = ` (h=${item.h})`;
-          else detail = ` (${item.realG} km)`;
-          span.textContent = `${idx === 0 ? '→ ' : ''}${DISPLAY_NAME[item.estado]}${detail}`;
-          elFrontierChips.appendChild(span);
-        });
+        const { preview, total } = step.frontierInfo;
+        if (total === 0) {
+          chips.innerHTML = '<span class="chip empty">Fronteira vazia (busca encerrada)</span>';
+        } else {
+          preview.forEach((item, idx) => {
+            const span = document.createElement('span');
+            span.className = 'chip' + (idx === 0 ? ' next' : '');
+            const detail = currentAlgo === 'BFS'
+              ? ` (g=${item.g})`
+              : (currentAlgo === 'Gulosa_h2' ? ` (h2=${item.h})` : ` (f=${item.f} | g=${item.g}+h=${item.h})`);
+            span.textContent = `${idx === 0 ? '→ ' : ''}${item.acao}${detail}`;
+            chips.appendChild(span);
+          });
+          if (total > preview.length) {
+            const more = document.createElement('span');
+            more.className = 'chip empty';
+            more.textContent = `+${total - preview.length} estados na fronteira (total: ${total})`;
+            chips.appendChild(more);
+          }
+        }
       }
 
-      // Buttons state
       btnReset.disabled = currentIdx === 0;
       btnPrev.disabled = currentIdx === 0;
       btnNext.disabled = currentIdx === trace.steps.length - 1;
       btnEnd.disabled = currentIdx === trace.steps.length - 1;
 
-      // Tabs & table highlight
-      document.querySelectorAll('.algo-btn').forEach(b => {
-        b.classList.toggle('active', b.dataset.algo === currentAlgo);
-      });
       renderComparisonTable();
     }
 
-    function selectAlgo(algo) {
-      stopPlay();
-      currentAlgo = algo;
-      currentIdx = 0;
-      renderAll();
-    }
-
-    // Event Listeners
-    document.querySelectorAll('.algo-btn').forEach(btn => {
-      btn.addEventListener('click', () => selectAlgo(btn.dataset.algo));
+    // Domain & Scenario Events
+    document.querySelectorAll('.domain-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        if (btn.dataset.domain === currentDomain) return;
+        stopPlay();
+        currentDomain = btn.dataset.domain;
+        currentAlgo = currentDomain === 'piaui' ? 'A*' : 'A*_h2';
+        currentIdx = 0;
+        renderAll();
+      });
     });
 
+    document.querySelectorAll('.scenario-btn').forEach(btn => {
+      btn.addEventListener('click', () => {
+        stopPlay();
+        currentScenario = btn.dataset.scenario;
+        currentIdx = 0;
+        renderAll();
+      });
+    });
+
+    // Playback Events
     btnReset.addEventListener('click', () => { stopPlay(); currentIdx = 0; renderAll(); });
     btnPrev.addEventListener('click', () => { stopPlay(); if (currentIdx > 0) { currentIdx--; renderAll(); } });
     btnNext.addEventListener('click', () => {
       stopPlay();
-      if (currentIdx < TRACES[currentAlgo].steps.length - 1) { currentIdx++; renderAll(); }
+      if (currentIdx < getActiveTrace().steps.length - 1) { currentIdx++; renderAll(); }
     });
     btnEnd.addEventListener('click', () => {
       stopPlay();
-      currentIdx = TRACES[currentAlgo].steps.length - 1;
+      currentIdx = getActiveTrace().steps.length - 1;
       renderAll();
     });
     btnPlay.addEventListener('click', togglePlay);
@@ -1543,22 +2121,13 @@
       if (playTimer) { stopPlay(); togglePlay(); }
     });
 
-    // Atalhos de teclado para apresentação fluida
     document.addEventListener('keydown', (e) => {
       if (e.target.tagName === 'SELECT') return;
-      if (e.key === 'ArrowRight') {
-        e.preventDefault();
-        btnNext.click();
-      } else if (e.key === 'ArrowLeft') {
-        e.preventDefault();
-        btnPrev.click();
-      } else if (e.key === ' ') {
-        e.preventDefault();
-        togglePlay();
-      }
+      if (e.key === 'ArrowRight') { e.preventDefault(); btnNext.click(); }
+      else if (e.key === 'ArrowLeft') { e.preventDefault(); btnPrev.click(); }
+      else if (e.key === ' ') { e.preventDefault(); togglePlay(); }
     });
 
-    // Inicializa
     renderAll();
   </script>
 </body>
